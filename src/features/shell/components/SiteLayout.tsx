@@ -1,5 +1,4 @@
 import React, { ReactNode } from "react";
-import "../../shared/styles/globals.css";
 import { SiteHeader } from "./SiteHeader";
 
 type Props = {
