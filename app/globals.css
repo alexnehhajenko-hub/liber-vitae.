@@ -1,0 +1,372 @@
+:root {
+  --color-bg: #15110f;
+  --color-bg-soft: #221812;
+  --color-bg-page: #f3e1c1;
+  --color-text: #2b2116;
+  --color-text-on-dark: #f6f0e9;
+  --color-text-muted: #8b7760;
+  --color-accent: #b8860b;
+  --color-wax: #a23424;
+
+  --font-heading: "Playfair Display", "Times New Roman", serif;
+  --font-body: "Garamond", "Georgia", serif;
+  --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --layout-max-width: 1200px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  background: radial-gradient(circle at top, #35241a 0, #15110f 55%);
+  color: var(--color-text-on-dark);
+  font-family: var(--font-body);
+}
+
+/* Корневой контейнер приложения */
+
+.lv-app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Шапка */
+
+.lv-site-header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px 4px;
+}
+
+.lv-site-header-inner {
+  width: 100%;
+  max-width: var(--layout-max-width);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lv-site-logo {
+  font-family: var(--font-heading);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-size: 11px;
+  color: rgba(246, 240, 233, 0.9);
+}
+
+.lv-site-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-ui);
+}
+
+/* Основная область */
+
+.lv-site-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.lv-site-main-inner {
+  width: 100%;
+  max-width: var(--layout-max-width);
+}
+
+/* Кнопки */
+
+.lv-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease,
+    background-color 0.12s ease, color 0.12s ease;
+  text-decoration: none;
+}
+
+.lv-button-primary {
+  background: linear-gradient(135deg, #f2cf7a, #b8860b);
+  color: #2b2116;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.45);
+}
+
+.lv-button-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.55);
+}
+
+.lv-button-primary:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.45);
+}
+
+.lv-button-ghost {
+  background: transparent;
+  color: var(--color-text-on-dark);
+  border: 1px solid rgba(246, 240, 233, 0.35);
+}
+
+.lv-button-ghost:hover {
+  background: rgba(246, 240, 233, 0.06);
+}
+
+.lv-button-ghost:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Кнопка-иконка */
+
+.lv-icon-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(246, 240, 233, 0.35);
+  background: rgba(0, 0, 0, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-on-dark);
+  transition: background 0.12s ease, transform 0.12s ease;
+}
+
+.lv-icon-button:hover {
+  background: rgba(246, 240, 233, 0.09);
+  transform: translateY(-1px);
+}
+
+.lv-icon-button:active {
+  transform: translateY(1px) scale(0.97);
+}
+
+/* Главный hero-блок */
+
+.lv-hero {
+  text-align: center;
+  padding: 32px 12px 40px;
+}
+
+.lv-hero-title {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+
+@media (min-width: 768px) {
+  .lv-hero-title {
+    font-size: 40px;
+  }
+}
+
+.lv-hero-subtitle {
+  max-width: 620px;
+  margin: 0 auto 24px;
+  font-size: 15px;
+  color: rgba(246, 240, 233, 0.75);
+}
+
+.lv-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 600px) {
+  .lv-hero-actions {
+    flex-direction: row;
+  }
+}
+
+/* Книга-разворот */
+
+.lv-book-layout {
+  position: relative;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 900px) {
+  .lv-book-layout {
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+}
+
+.lv-book-shadow {
+  position: absolute;
+  inset: -12px;
+  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.6), transparent 70%);
+  filter: blur(18px);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.lv-book-page {
+  position: relative;
+  z-index: 1;
+  background: radial-gradient(circle at top, #f8e7c6 0, #f3d9ad 55%, #e8cda0 100%);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  padding: 20px 18px;
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+@media (min-width: 900px) {
+  .lv-book-page {
+    padding: 26px 22px;
+  }
+}
+
+/* Страница с текстом */
+
+.lv-book-heading {
+  text-align: center;
+  font-family: var(--font-heading);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.lv-book-subheading {
+  text-align: center;
+  font-family: var(--font-heading);
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.lv-book-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #3b2b1a;
+}
+
+/* Буквица */
+
+.lv-dropcap {
+  float: left;
+  font-family: var(--font-heading);
+  font-size: 42px;
+  line-height: 0.9;
+  margin-right: 6px;
+  margin-top: 4px;
+  color: #b37227;
+}
+
+/* Страница портрета */
+
+.lv-book-portrait-frame {
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
+  border-radius: 18px;
+  border: 5px solid #b78640;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  background: #0d0906;
+}
+
+.lv-book-portrait-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.lv-book-portrait-placeholder {
+  width: 100%;
+  padding: 40px 16px;
+  text-align: center;
+  color: #c1ad8e;
+  font-size: 13px;
+}
+
+.lv-book-portrait-caption {
+  margin-top: 14px;
+  text-align: center;
+  font-size: 13px;
+  font-style: italic;
+  color: #5d4731;
+}
+
+/* Сургучная кнопка */
+
+.lv-wax-button-row {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 600px) {
+  .lv-wax-button-row {
+    flex-direction: row;
+  }
+}
+
+.lv-wax-button {
+  position: relative;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  color: #3a2119;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 10px;
+  padding-top: 54px;
+}
+
+.lv-wax-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, #f4a27f, #8b2415 70%, #3e0c08 100%);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+  transform: translateX(-50%);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.lv-wax-button:hover::before {
+  transform: translateX(-50%) translateY(-1px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.6);
+}
+
+.lv-wax-button:active::before {
+  transform: translateX(-50%) translateY(1px) scale(0.97);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.55);
+}
