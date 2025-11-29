@@ -1,5 +1,11 @@
-import { Button } from "../../../shared/ui/Button";
+import React from "react";
 
-export function BookWaxSealButton(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <Button {...props} />;
+type Props = React.ButtonHTMLAttributes<HTMLButtonElement>;
+
+export function BookWaxSealButton({ children, ...rest }: Props) {
+  return (
+    <button className="lv-wax-button" {...rest}>
+      {children}
+    </button>
+  );
 }
