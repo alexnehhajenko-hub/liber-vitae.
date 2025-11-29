@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Button } from "../../../shared/ui/Button";
 
 export function HeroSection() {
@@ -10,8 +11,12 @@ export function HeroSection() {
         старинный манускрипт Liber Vitae с философским портретом в стиле XVII века.
       </p>
       <div className="lv-hero-actions">
-        <Button>Книга обо мне</Button>
-        <Button variant="ghost">Книга о близком человеке</Button>
+        <Link href="/book">
+          <Button>Книга обо мне</Button>
+        </Link>
+        <Link href="/book">
+          <Button variant="ghost">Книга о близком человеке</Button>
+        </Link>
       </div>
     </section>
   );
