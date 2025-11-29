@@ -5,6 +5,7 @@ export const BookLayout: React.FC = () => {
     <div className="lv-site-main">
       <div className="lv-book-layout">
         <div className="lv-book-shadow" />
+
         {/* Левая страница */}
         <div className="lv-book-page">
           <div className="lv-book-heading">LIBER VITAE:</div>
@@ -25,7 +26,7 @@ export const BookLayout: React.FC = () => {
             </div>
           </div>
           <div className="lv-book-portrait-caption">
-            Философский лик, запечатлённый в вечности
+            Философский лик, запечатлённый в вечности.
           </div>
 
           <div className="lv-wax-button-row">
