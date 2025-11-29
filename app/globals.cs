@@ -1,0 +1,1 @@
+@import "../src/shared/styles/globals.css";
