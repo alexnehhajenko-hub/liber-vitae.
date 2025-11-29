@@ -1,10 +1,15 @@
-import { SiteLayout } from "../src/features/shell/components/SiteLayout";
-import { HeroSection } from "../src/features/shell/components/HeroSection";
+import "./globals.css";
+import type { ReactNode } from "react";
 
-export default function HomePage() {
+export const metadata = {
+  title: "Liber Vitae",
+  description: "Философская книга о человеке",
+};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <SiteLayout>
-      <HeroSection />
-    </SiteLayout>
+    <html lang="ru">
+      <body>{children}</body>
+    </html>
   );
 }
