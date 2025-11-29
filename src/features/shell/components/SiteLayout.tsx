@@ -1,17 +1,13 @@
-import React, { ReactNode } from "react";
-import { SiteHeader } from "./SiteHeader";
+import React from "react";
 
-type Props = {
-  children: ReactNode;
-};
-
-export function SiteLayout({ children }: Props) {
+export const SiteLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="lv-app-root">
-      <SiteHeader />
-      <main className="lv-site-main">
-        <div className="lv-site-main-inner">{children}</div>
-      </main>
+    <div className="lv-site-wrapper">
+      <header className="lv-header">
+        <div className="lv-logo">LIBER VITAE</div>
+      </header>
+      <main>{children}</main>
+      <footer className="lv-footer">© Liber Vitae</footer>
     </div>
   );
-}
+};
