@@ -1,8 +1,16 @@
 :root {
   --color-bg: #15110f;
-  --color-text: #f6f0e9;
-  --color-text-muted: #c8b9a4;
+  --color-bg-soft: #221812;
+  --color-bg-page: #f3e1c1;
+  --color-text: #2b2116;
+  --color-text-on-dark: #f6f0e9;
+  --color-text-muted: #8b7760;
   --color-accent: #b8860b; /* золото */
-  --font-heading: "Playfair Display", serif;
-  --font-body: "Garamond", serif;
+  --color-wax: #a23424;
+
+  --font-heading: "Playfair Display", "Times New Roman", serif;
+  --font-body: "Garamond", "Georgia", serif;
+  --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  --layout-max-width: 1200px;
 }
