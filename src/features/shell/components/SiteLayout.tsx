@@ -1,11 +1,18 @@
-import type { ReactNode } from "react";
+import React, { ReactNode } from "react";
+import "../../shared/styles/globals.css";
 import { SiteHeader } from "./SiteHeader";
 
-export function SiteLayout({ children }: { children: ReactNode }) {
+type Props = {
+  children: ReactNode;
+};
+
+export function SiteLayout({ children }: Props) {
   return (
-    <div>
+    <div className="lv-app-root">
       <SiteHeader />
-      <main>{children}</main>
+      <main className="lv-site-main">
+        <div className="lv-site-main-inner">{children}</div>
+      </main>
     </div>
   );
 }
