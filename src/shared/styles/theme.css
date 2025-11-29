@@ -1,0 +1,8 @@
+:root {
+  --color-bg: #15110f;
+  --color-text: #f6f0e9;
+  --color-text-muted: #c8b9a4;
+  --color-accent: #b8860b; /* золото */
+  --font-heading: "Playfair Display", serif;
+  --font-body: "Garamond", serif;
+}
