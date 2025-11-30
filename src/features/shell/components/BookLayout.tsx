@@ -8,13 +8,12 @@ export const BookLayout: React.FC = () => {
 
         {/* Левая страница */}
         <div className="lv-book-page">
-          <div className="lv-book-heading">Liber Vitae</div>
-          <div className="lv-book-subheading">Manuscript XVII</div>
+          <div className="lv-book-heading">LIBER VITAE</div>
+          <div className="lv-book-subheading">MANUSCRIPT XVII</div>
           <div className="lv-book-body">
             <span className="lv-dropcap">A</span>
             ut viam inveniam aut faciam. Пусть эти строки будут написаны светом,
-            размышлениями и памятью — это след пера, оставленный на бумаге
-            времени.
+            размышлениями и памятью — это след пера, оставленный на бумаге времени.
           </div>
         </div>
 
@@ -26,14 +25,13 @@ export const BookLayout: React.FC = () => {
             </div>
           </div>
           <div className="lv-book-portrait-caption">
-            Философский лик, запечатлённый в свете.
+            Философский лик, запечатлённый в вечности.
           </div>
-        </div>
 
-        {/* Кнопки */}
-        <div className="lv-wax-button-row">
-          <button className="lv-wax-button">Следующая страница</button>
-          <button className="lv-wax-button">Вернуться</button>
+          <div className="lv-wax-button-row">
+            <button className="lv-wax-button">Сохранить в архив</button>
+            <button className="lv-wax-button">Начать новый том</button>
+          </div>
         </div>
       </div>
     </div>
