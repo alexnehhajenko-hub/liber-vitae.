@@ -1,10 +1,9 @@
-import "../src/shared/styles/globals.css";
 import type { Metadata } from "next";
+import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Liber Vitae — философская книга о человеке",
-  description:
-    "Ответьте на вопросы о себе или близком человеке — и мы соберём старинный манускрипт Liber Vitae с философским портретом в стиле XVII века.",
+  title: "Liber Vitae",
+  description: "Философская книга о человеке",
 };
 
 export default function RootLayout({
@@ -14,7 +13,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
-      <body>{children}</body>
+      <body
+        style={{
+          margin: 0,
+          minHeight: "100vh",
+          fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+          backgroundColor: "#050202",
+          color: "#f5e9d2",
+        }}
+      >
+        {children}
+      </body>
     </html>
   );
 }
