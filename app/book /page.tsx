@@ -1,11 +1,17 @@
-import React from "react";
-import { SiteLayout } from "../../src/features/shell/components/SiteLayout";
-import { BookLayout } from "../../src/features/shell/components/BookLayout";
-
 export default function BookPage() {
   return (
-    <SiteLayout>
-      <BookLayout />
-    </SiteLayout>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "black",
+        color: "white",
+        fontSize: "24px",
+      }}
+    >
+      Тестовая страница книги /book
+    </div>
   );
 }
