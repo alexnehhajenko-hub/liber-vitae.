@@ -1,10 +1,10 @@
-import { SiteLayout } from "../../src/features/shell/components/SiteLayout";
-import { BookLayout } from "../../src/features/shell/components/BookLayout";
+import { SiteLayout } from "../src/features/shell/components/SiteLayout";
+import { HeroSection } from "../src/features/shell/components/HeroSection";
 
-export default function BookPage() {
+export default function HomePage() {
   return (
     <SiteLayout>
-      <BookLayout />
+      <HeroSection />
     </SiteLayout>
   );
 }
