@@ -1,91 +1,142 @@
-/* ===== 3D-КНИГА LIBER VITAE ===== */
+/* ===== LIBER VITAE – ОБЪЁМНАЯ КНИГА ===== */
 
+/* Сцена с перспективой */
 .lv-book-scene {
   display: flex;
   justify-content: center;
-  padding: 40px 0 64px;
-  perspective: 1600px; /* глубина сцены для 3D */
+  padding: 40px 0 80px;
+  background: radial-gradient(circle at 50% -10%, #3b2412 0, #120804 55%);
 }
 
-/* Базовый контейнер книги */
-.lv-book-layout {
+/* телефон */
+.lv-book-scene--mobile {
+  perspective: 1400px;
+}
+
+/* десктоп */
+.lv-book-scene--desktop {
+  perspective: 1800px;
+}
+
+/* Общий контейнер тома */
+.lv-book-volume {
   position: relative;
+  transform-style: preserve-3d;
+}
+
+/* ОДНА страница (телефон) – объёмный том */
+.lv-book-volume--single {
+  width: 86vw;
+  max-width: 420px;
+  transform-origin: center bottom;
+  transform: rotateX(26deg) rotateY(-18deg);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.95);
+}
+
+/* Разворот (планшет/десктоп) */
+.lv-book-volume--spread {
   display: flex;
   align-items: stretch;
+  transform-origin: center center;
+  transform: rotateX(16deg) rotateY(-22deg);
+  box-shadow: 0 32px 110px rgba(0, 0, 0, 0.98);
+  border-radius: 22px;
 }
 
-/* 3D-поворот только на планшете/десктопе */
-@media (min-width: 768px) {
-  .lv-book-layout--3d {
-    transform-style: preserve-3d;
-    transform: rotateX(14deg) rotateY(-18deg);
-    transform-origin: center center;
-    transition: transform 0.6s ease, box-shadow 0.6s ease;
-    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.9);
-  }
-
-  .lv-book-layout--3d:hover {
-    transform: rotateX(10deg) rotateY(-14deg) translateY(-4px);
-    box-shadow: 0 32px 110px rgba(0, 0, 0, 0.95);
+/* При наведении – чуть «поднимаем» книгу */
+@media (hover: hover) and (pointer: fine) {
+  .lv-book-volume--spread:hover {
+    transform: rotateX(12deg) rotateY(-18deg) translateY(-4px);
+    box-shadow: 0 38px 140px rgba(0, 0, 0, 1);
   }
 }
 
-/* Одна страница (телефон) — без 3D наклона */
-.lv-book-layout--single {
-  transform: none;
-  box-shadow: none;
-}
-
-/* Общий вид страниц */
-.lv-book-page {
-  background:
-    radial-gradient(circle at 20% 0%, rgba(255,255,255,0.6), transparent 55%),
-    radial-gradient(circle at 80% 100%, rgba(170,120,60,0.35), transparent 55%),
-    linear-gradient(135deg, #f6e0b9 0%, #f0d4a0 40%, #e9c48b 100%);
+/* Толщина страниц снизу (телефон) */
+.lv-book-edge--bottom {
+  position: absolute;
+  inset: auto 16px -10px 16px;
+  height: 16px;
+  border-radius: 0 0 14px 14px;
+  background: linear-gradient(
+    to bottom,
+    rgba(250, 235, 210, 0.9),
+    rgba(180, 135, 85, 0.9)
+  );
   box-shadow:
-    0 0 0 1px rgba(96, 60, 30, 0.05),
-    inset 0 0 40px rgba(160, 110, 60, 0.45);
+    0 8px 18px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 1px rgba(120, 80, 40, 0.6);
+  transform: translateZ(-6px);
 }
 
-/* Левая страница — делаем "переплёт" и мягкую тень по центру */
+/* Базовый вид страницы */
+.lv-book-page {
+  position: relative;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(circle at 90% 100%, rgba(180, 130, 80, 0.4), transparent 60%),
+    linear-gradient(135deg, #f7e1bc 0%, #f0d19a 48%, #e4ba7b 100%);
+  box-shadow:
+    0 0 0 1px rgba(110, 70, 40, 0.12),
+    inset 0 0 40px rgba(150, 105, 60, 0.5);
+  padding: 32px 26px 36px;
+}
+
+/* Одна страница – скругление по кругу */
+.lv-book-page--single {
+  border-radius: 16px;
+}
+
+/* Левая страница разворота – корешок и складка */
 .lv-book-page--left {
   border-radius: 18px 0 0 18px;
-  position: relative;
+  min-width: 360px;
+  max-width: 420px;
 }
 
 .lv-book-page--left::after {
   content: "";
   position: absolute;
   top: 0;
-  right: -2px;
-  width: 18px;
+  right: -4px;
+  width: 20px;
   height: 100%;
   background: linear-gradient(
     to right,
-    rgba(40, 20, 10, 0.55),
+    rgba(40, 20, 10, 0.8),
     rgba(0, 0, 0, 0.0)
   );
-  filter: blur(3px);
+  filter: blur(4px);
   pointer-events: none;
 }
 
-/* Правая страница — скругление и внешняя тень */
+/* Правая страница разворота */
 .lv-book-page--right {
   border-radius: 0 18px 18px 0;
+  min-width: 360px;
+  max-width: 480px;
   box-shadow:
-    12px 0 26px rgba(0, 0, 0, 0.65),
-    0 0 0 1px rgba(96, 60, 30, 0.1),
-    inset 0 0 32px rgba(160, 110, 60, 0.4);
+    14px 0 28px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(110, 70, 40, 0.18),
+    inset 0 0 32px rgba(150, 105, 60, 0.55);
 }
 
-/* Одиночная страница (телефон) — закругления по кругу */
-.lv-book-page--single {
-  border-radius: 18px;
+/* Свет сверху, лежащая книга под углом (телефон) */
+.lv-book-page--single::before {
+  content: "";
+  position: absolute;
+  inset: -12px -10px auto -10px;
+  border-radius: 26px;
+  background: radial-gradient(
+    circle at 50% 0,
+    rgba(255, 255, 255, 0.18),
+    transparent 70%
+  );
+  pointer-events: none;
 }
 
-/* Портретная рамка чуть более «врезанная» в страницу */
+/* Рамка портрета – более «врезанная» */
 .lv-book-portrait-frame--single {
   box-shadow:
-    0 10px 26px rgba(0, 0, 0, 0.7),
-    inset 0 0 0 2px rgba(210, 160, 90, 0.9);
+    0 14px 30px rgba(0, 0, 0, 0.85),
+    inset 0 0 0 2px rgba(210, 165, 95, 0.95);
 }
