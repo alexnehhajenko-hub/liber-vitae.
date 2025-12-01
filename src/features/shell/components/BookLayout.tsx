@@ -35,11 +35,60 @@ export const BookLayout: React.FC = () => {
   if (isMobile) {
     return (
       <main className="lv-site-main">
-        <div className="lv-book-layout">
-          <section
-            className="lv-book-page lv-book-page--single"
-            style={singlePageStyle}
-          >
+        <div className="lv-book-scene">
+          <div className="lv-book-layout lv-book-layout--single">
+            <section
+              className="lv-book-page lv-book-page--single"
+              style={singlePageStyle}
+            >
+              <header className="lv-book-heading-block">
+                <p className="lv-book-small-title">LIBER VITAE</p>
+                <h1 className="lv-book-title">MANUSCRIPT XVII</h1>
+              </header>
+
+              <div className="lv-book-body">
+                <p>
+                  <span className="lv-dropcap">A</span>ut viam inveniam aut
+                  faciam. Пусть эти строки будут написаны светом,
+                  размышлениями и памятью — это след пера, оставленный на
+                  бумаге времени.
+                </p>
+              </div>
+
+              <div className="lv-book-portrait-frame lv-book-portrait-frame--single">
+                <p className="lv-book-portrait-placeholder">
+                  Портрет скоро появится
+                </p>
+              </div>
+
+              <p className="lv-book-portrait-caption">
+                Философский лик, запечатлённый в вечности.
+              </p>
+
+              <div className="lv-wax-button-row">
+                <button className="lv-wax-button lv-wax-button--primary">
+                  СОХРАНИТЬ В АРХИВ
+                </button>
+                <button className="lv-wax-button lv-wax-button--secondary">
+                  НАЧАТЬ НОВЫЙ ТОМ
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // Планшет / десктоп — разворот из двух страниц с 3D-перспективой
+  return (
+    <main className="lv-site-main">
+      <div className="lv-book-scene">
+        <div className="lv-book-layout lv-book-layout--3d">
+          <div className="lv-book-shadow" />
+
+          {/* Левая страница */}
+          <section className="lv-book-page lv-book-page--left">
             <header className="lv-book-heading-block">
               <p className="lv-book-small-title">LIBER VITAE</p>
               <h1 className="lv-book-title">MANUSCRIPT XVII</h1>
@@ -53,8 +102,14 @@ export const BookLayout: React.FC = () => {
                 бумаге времени.
               </p>
             </div>
+          </section>
 
-            <div className="lv-book-portrait-frame lv-book-portrait-frame--single">
+          {/* Правая страница */}
+          <section
+            className="lv-book-page lv-book-page--right"
+            style={rightPageStyle}
+          >
+            <div className="lv-book-portrait-frame">
               <p className="lv-book-portrait-placeholder">
                 Портрет скоро появится
               </p>
@@ -74,56 +129,6 @@ export const BookLayout: React.FC = () => {
             </div>
           </section>
         </div>
-      </main>
-    );
-  }
-
-  // Планшет / десктоп — разворот из двух страниц
-  return (
-    <main className="lv-site-main">
-      <div className="lv-book-layout">
-        <div className="lv-book-shadow" />
-
-        {/* Левая страница */}
-        <section className="lv-book-page lv-book-page--left">
-          <header className="lv-book-heading-block">
-            <p className="lv-book-small-title">LIBER VITAE</p>
-            <h1 className="lv-book-title">MANUSCRIPT XVII</h1>
-          </header>
-
-          <div className="lv-book-body">
-            <p>
-              <span className="lv-dropcap">A</span>ut viam inveniam aut faciam.
-              Пусть эти строки будут написаны светом, размышлениями и
-              памятью — это след пера, оставленный на бумаге времени.
-            </p>
-          </div>
-        </section>
-
-        {/* Правая страница */}
-        <section
-          className="lv-book-page lv-book-page--right"
-          style={rightPageStyle}
-        >
-          <div className="lv-book-portrait-frame">
-            <p className="lv-book-portrait-placeholder">
-              Портрет скоро появится
-            </p>
-          </div>
-
-          <p className="lv-book-portrait-caption">
-            Философский лик, запечатлённый в вечности.
-          </p>
-
-          <div className="lv-wax-button-row">
-            <button className="lv-wax-button lv-wax-button--primary">
-              СОХРАНИТЬ В АРХИВ
-            </button>
-            <button className="lv-wax-button lv-wax-button--secondary">
-              НАЧАТЬ НОВЫЙ ТОМ
-            </button>
-          </div>
-        </section>
       </div>
     </main>
   );
