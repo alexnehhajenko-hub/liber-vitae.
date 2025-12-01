@@ -37,6 +37,7 @@ export default function DynamicPage({ params }: PageProps) {
             fontSize: "24px",
             marginBottom: "16px",
           }}
+
         >
           Страница: {slug}
         </h1>
