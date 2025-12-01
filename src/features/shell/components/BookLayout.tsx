@@ -17,30 +17,16 @@ export const BookLayout: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ОДНА страница на телефоне
-  const singlePageStyle: React.CSSProperties = {
-    width: "86vw",
-    maxWidth: 420,
-    margin: "28px auto 44px",
-    borderRadius: 18,
-    boxShadow: "0 20px 45px rgba(0,0,0,0.75)",
-  };
-
-  // Правая страница в развороте (планшет/десктоп)
-  const rightPageStyle: React.CSSProperties = {
-    maxWidth: 520,
-  };
-
-  // Мобильный вариант — один лист
+  // ===== МОБИЛЬНАЯ ВЕРСИЯ: ОДНА ОБЪЁМНАЯ СТРАНИЦА =====
   if (isMobile) {
     return (
       <main className="lv-site-main">
-        <div className="lv-book-scene">
-          <div className="lv-book-layout lv-book-layout--single">
-            <section
-              className="lv-book-page lv-book-page--single"
-              style={singlePageStyle}
-            >
+        <div className="lv-book-scene lv-book-scene--mobile">
+          <div className="lv-book-volume lv-book-volume--single">
+            {/* имитация толщины страниц снизу */}
+            <div className="lv-book-edge lv-book-edge--bottom" />
+
+            <section className="lv-book-page lv-book-page--single">
               <header className="lv-book-heading-block">
                 <p className="lv-book-small-title">LIBER VITAE</p>
                 <h1 className="lv-book-title">MANUSCRIPT XVII</h1>
@@ -80,11 +66,11 @@ export const BookLayout: React.FC = () => {
     );
   }
 
-  // Планшет / десктоп — разворот из двух страниц с 3D-перспективой
+  // ===== ПЛАНШЕТ / ДЕСКТОП: РАЗВОРОТ КНИГИ С ПЕРСПЕКТИВОЙ =====
   return (
     <main className="lv-site-main">
-      <div className="lv-book-scene">
-        <div className="lv-book-layout lv-book-layout--3d">
+      <div className="lv-book-scene lv-book-scene--desktop">
+        <div className="lv-book-volume lv-book-volume--spread">
           <div className="lv-book-shadow" />
 
           {/* Левая страница */}
@@ -105,10 +91,7 @@ export const BookLayout: React.FC = () => {
           </section>
 
           {/* Правая страница */}
-          <section
-            className="lv-book-page lv-book-page--right"
-            style={rightPageStyle}
-          >
+          <section className="lv-book-page lv-book-page--right">
             <div className="lv-book-portrait-frame">
               <p className="lv-book-portrait-placeholder">
                 Портрет скоро появится
