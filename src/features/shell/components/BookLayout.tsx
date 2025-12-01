@@ -247,3 +247,4 @@ export const BookLayout: React.FC = () => {
     </main>
   );
 };
+
