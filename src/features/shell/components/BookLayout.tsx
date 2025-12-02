@@ -6,10 +6,10 @@ export const BookLayout: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const handleResize = () => {
-      if (typeof window !== "undefined") {
-        setIsMobile(window.innerWidth < 768); // телефон
-      }
+      setIsMobile(window.innerWidth < 768); // телефон
     };
 
     handleResize();
@@ -17,22 +17,20 @@ export const BookLayout: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ===== МОБИЛЬНАЯ ВЕРСИЯ: ОДНА ОБЪЁМНАЯ СТРАНИЦА =====
+  // ===== МОБИЛЬНАЯ ВЕРСИЯ: ОДНА ФОТО-СТРАНИЦА =====
   if (isMobile) {
     return (
       <main className="lv-site-main">
         <div className="lv-book-scene lv-book-scene--mobile">
-          <div className="lv-book-volume lv-book-volume--single">
-            {/* имитация толщины страниц снизу */}
-            <div className="lv-book-edge lv-book-edge--bottom" />
-
-            <section className="lv-book-page lv-book-page--single">
-              <header className="lv-book-heading-block">
+          {/* сама страница — это картинка-фон книги */}
+          <div className="lv-book-page-photo">
+            <div className="lv-book-page-photo__content">
+              <header className="lv-book-heading-block lv-book-heading-block--mobile">
                 <p className="lv-book-small-title">LIBER VITAE</p>
                 <h1 className="lv-book-title">MANUSCRIPT XVII</h1>
               </header>
 
-              <div className="lv-book-body">
+              <div className="lv-book-body lv-book-body--mobile">
                 <p>
                   <span className="lv-dropcap">A</span>ut viam inveniam aut
                   faciam. Пусть эти строки будут написаны светом,
@@ -41,17 +39,17 @@ export const BookLayout: React.FC = () => {
                 </p>
               </div>
 
-              <div className="lv-book-portrait-frame lv-book-portrait-frame--single">
+              <div className="lv-book-portrait-frame lv-book-portrait-frame--mobile">
                 <p className="lv-book-portrait-placeholder">
                   Портрет скоро появится
                 </p>
               </div>
 
-              <p className="lv-book-portrait-caption">
+              <p className="lv-book-portrait-caption lv-book-portrait-caption--mobile">
                 Философский лик, запечатлённый в вечности.
               </p>
 
-              <div className="lv-wax-button-row">
+              <div className="lv-wax-button-row lv-wax-button-row--mobile">
                 <button className="lv-wax-button lv-wax-button--primary">
                   СОХРАНИТЬ В АРХИВ
                 </button>
@@ -59,7 +57,7 @@ export const BookLayout: React.FC = () => {
                   НАЧАТЬ НОВЫЙ ТОМ
                 </button>
               </div>
-            </section>
+            </div>
           </div>
         </div>
       </main>
