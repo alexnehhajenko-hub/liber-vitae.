@@ -2,99 +2,91 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
+import { PageFlip } from "page-flip";
 
 const BookLayout: React.FC = () => {
   const bookRef = useRef<HTMLDivElement | null>(null);
-  const pageFlipRef = useRef<any | null>(null);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!bookRef.current) return;
 
-    let tries = 0;
-    const maxTries = 50;
+    let flip: any;
 
-    const tryInit = () => {
-      const St = (window as any).St;
+    try {
+      // создаём экземпляр книги
+      flip = new PageFlip(bookRef.current, {
+        width: 550,
+        height: 733,
+        size: "stretch",
+        minWidth: 320,
+        maxWidth: 1200,
+        minHeight: 420,
+        maxHeight: 900,
+        maxShadowOpacity: 0.6,
+        showCover: true,
+        mobileScrollSupport: false, // жесты перелистывания, а не скролл
+        usePortrait: true // на телефоне — одна страница, на широком — разворот
+      });
 
-      if (St?.PageFlip && bookRef.current) {
-        pageFlipRef.current = new St.PageFlip(bookRef.current, {
-          width: 550,
-          height: 733,
-          size: "stretch",
-          minWidth: 320,
-          maxWidth: 1200,
-          minHeight: 420,
-          maxHeight: 900,
-          maxShadowOpacity: 0.6,
-          showCover: true,
-          mobileScrollSupport: false,
-          usePortrait: true, // телефон/планшет — одна страница, десктоп — разворот
-        });
-
-        const pages = bookRef.current.querySelectorAll(".page");
-        pageFlipRef.current.loadFromHTML(pages);
-        return;
-      }
-
-      if (tries < maxTries) {
-        tries += 1;
-        setTimeout(tryInit, 100);
-      }
-    };
-
-    tryInit();
+      // загружаем страницы из HTML (все элементы с классом .page)
+      const pages = bookRef.current.querySelectorAll(".page");
+      flip.loadFromHTML(pages);
+    } catch (e) {
+      console.error("Ошибка инициализации PageFlip", e);
+    }
 
     return () => {
-      if (pageFlipRef.current) {
-        pageFlipRef.current.destroy();
-        pageFlipRef.current = null;
+      if (flip) {
+        flip.destroy();
       }
     };
   }, []);
 
-  const pageInnerStyle = {
+  // ---------- стили страниц (как раньше) ----------
+  const pageInnerStyle: CSSProperties = {
     width: "100%",
     height: "100%",
     borderRadius: "18px",
     padding: "32px 28px",
-    boxSizing: "border-box" as const,
+    boxSizing: "border-box",
     background: "radial-gradient(circle at top, #f9ecce, #e3c79a)",
     boxShadow:
       "0 18px 45px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(140, 98, 47, 0.25)",
     display: "flex",
-    flexDirection: "column" as const,
-    justifyContent: "space-between",
+    flexDirection: "column",
+    justifyContent: "space-between"
   };
 
-  const titleStyle = {
+  const titleStyle: CSSProperties = {
     fontSize: "18px",
     letterSpacing: "0.32em",
-    textAlign: "center" as const,
+    textAlign: "center",
     marginBottom: "12px",
-    color: "#7c5328",
+    color: "#7c5328"
   };
 
-  const h1Style = {
+  const h1Style: CSSProperties = {
     fontSize: "24px",
     letterSpacing: "0.12em",
-    textAlign: "center" as const,
+    textAlign: "center",
     margin: "0 0 22px 0",
-    color: "#5b3b20",
+    color: "#5b3b20"
   };
 
-  const bodyTextStyle = {
+  const bodyTextStyle: CSSProperties = {
     fontSize: "15px",
     lineHeight: 1.55,
-    color: "#5a4225",
+    color: "#5a4225"
   };
 
-  const dropcapStyle = {
-    float: "left" as const,
+  const dropcapStyle: CSSProperties = {
+    float: "left",
     fontSize: "42px",
     lineHeight: "32px",
     marginRight: "8px",
     color: "#b46a26",
-    fontFamily: "serif",
+    fontFamily: "serif"
   };
 
   return (
@@ -106,20 +98,22 @@ const BookLayout: React.FC = () => {
         justifyContent: "center",
         padding: "32px 12px",
         background:
-          "radial-gradient(circle at top, #2b1206 0, #050202 55%, #000000 100%)",
+          "radial-gradient(circle at top, #2b1206 0, #050202 55%, #000000 100%)"
       }}
     >
+      {/* Контейнер, в котором живёт PageFlip */}
       <div
         ref={bookRef}
-        className="flip-book-container"
+        className="flip-book"
         style={{
           width: "100%",
           maxWidth: "980px",
           height: "80vh",
           maxHeight: "720px",
+          margin: "0 auto"
         }}
       >
-        {/* ОБЛОЖКА (жёсткая) */}
+        {/* ===== ОБЛОЖКА (жёсткая) ===== */}
         <div className="page" data-density="hard">
           <div
             style={{
@@ -128,7 +122,7 @@ const BookLayout: React.FC = () => {
               alignItems: "center",
               background:
                 "radial-gradient(circle at top, #f0d79f, #cc9b52 70%, #8c5a23 100%)",
-              color: "#2f1809",
+              color: "#2f1809"
             }}
           >
             <div style={{ textAlign: "center" }}>
@@ -140,7 +134,7 @@ const BookLayout: React.FC = () => {
                   lineHeight: 1.6,
                   maxWidth: "260px",
                   margin: "0 auto",
-                  color: "rgba(47, 24, 9, 0.8)",
+                  color: "rgba(47, 24, 9, 0.8)"
                 }}
               >
                 Философский манускрипт о человеке, его характере и памяти.
@@ -149,7 +143,7 @@ const BookLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* СТРАНИЦА 1 — ТЕКСТ */}
+        {/* ===== СТРАНИЦА 1 — ТЕКСТ ===== */}
         <div className="page">
           <div style={pageInnerStyle}>
             <header>
@@ -171,7 +165,7 @@ const BookLayout: React.FC = () => {
                 fontSize: "11px",
                 textTransform: "uppercase",
                 letterSpacing: "0.18em",
-                color: "rgba(91, 59, 32, 0.75)",
+                color: "rgba(91, 59, 32, 0.75)"
               }}
             >
               LIBER • MANUSCRIPT XVII
@@ -179,13 +173,13 @@ const BookLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* СТРАНИЦА 2 — ПОРТРЕТ + КНОПКИ */}
+        {/* ===== СТРАНИЦА 2 — ПОРТРЕТ + КНОПКИ ===== */}
         <div className="page">
           <div style={pageInnerStyle}>
             <header
               style={{
                 textAlign: "center",
-                marginBottom: "18px",
+                marginBottom: "18px"
               }}
             >
               <p
@@ -193,7 +187,7 @@ const BookLayout: React.FC = () => {
                   fontSize: "13px",
                   letterSpacing: "0.35em",
                   margin: 0,
-                  color: "#7c5328",
+                  color: "#7c5328"
                 }}
               >
                 ПОРТРЕТ
@@ -203,7 +197,7 @@ const BookLayout: React.FC = () => {
                   fontSize: "20px",
                   letterSpacing: "0.16em",
                   margin: "8px 0 0 0",
-                  color: "#5b3b20",
+                  color: "#5b3b20"
                 }}
               >
                 ФИЛОСОФСКИЙ ЛИК
@@ -219,7 +213,7 @@ const BookLayout: React.FC = () => {
                   "linear-gradient(135deg, #1b100b 0%, #090606 55%, #24110a 100%)",
                 boxShadow:
                   "0 18px 40px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255, 214, 170, 0.18)",
-                textAlign: "center",
+                textAlign: "center"
               }}
             >
               <p
@@ -228,7 +222,7 @@ const BookLayout: React.FC = () => {
                   fontSize: "15px",
                   letterSpacing: "0.16em",
                   textTransform: "uppercase",
-                  color: "#f4d6a6",
+                  color: "#f4d6a6"
                 }}
               >
                 ПОРТРЕТ СКОРО ПОЯВИТСЯ
@@ -240,7 +234,7 @@ const BookLayout: React.FC = () => {
                 ...bodyTextStyle,
                 fontSize: "13px",
                 textAlign: "center",
-                marginBottom: "28px",
+                marginBottom: "28px"
               }}
             >
               Философский лик, запечатлённый в вечности.
@@ -251,7 +245,7 @@ const BookLayout: React.FC = () => {
                 display: "flex",
                 flexDirection: "column",
                 gap: "14px",
-                marginTop: "auto",
+                marginTop: "auto"
               }}
             >
               <button
@@ -267,7 +261,7 @@ const BookLayout: React.FC = () => {
                   letterSpacing: "0.25em",
                   textTransform: "uppercase",
                   boxShadow:
-                    "0 12px 24px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255, 248, 222, 0.3)",
+                    "0 12px 24px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(255, 248, 222, 0.3)"
                 }}
               >
                 СОХРАНИТЬ В АРХИВ
@@ -284,7 +278,7 @@ const BookLayout: React.FC = () => {
                   fontSize: "12px",
                   letterSpacing: "0.25em",
                   textTransform: "uppercase",
-                  boxShadow: "0 10px 22px rgba(0,0,0,0.3)",
+                  boxShadow: "0 10px 22px rgba(0,0,0,0.3)"
                 }}
               >
                 НАЧАТЬ НОВЫЙ ТОМ
@@ -293,13 +287,13 @@ const BookLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* СТРАНИЦА 3 — ГЛАВА I */}
+        {/* ===== СТРАНИЦА 3 — ГЛАВА I ===== */}
         <div className="page">
           <div style={pageInnerStyle}>
             <header
               style={{
                 textAlign: "center",
-                marginBottom: "20px",
+                marginBottom: "20px"
               }}
             >
               <p
@@ -307,7 +301,7 @@ const BookLayout: React.FC = () => {
                   fontSize: "13px",
                   letterSpacing: "0.32em",
                   margin: 0,
-                  color: "#7c5328",
+                  color: "#7c5328"
                 }}
               >
                 ГЛАВА I
@@ -317,7 +311,7 @@ const BookLayout: React.FC = () => {
                   fontSize: "20px",
                   letterSpacing: "0.14em",
                   margin: "8px 0 0 0",
-                  color: "#5b3b20",
+                  color: "#5b3b20"
                 }}
               >
                 О ХАРАКТЕРЕ
@@ -334,7 +328,7 @@ const BookLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* ЗАДНЯЯ ОБЛОЖКА (жёсткая) */}
+        {/* ===== ЗАДНЯЯ ОБЛОЖКА (жёсткая) ===== */}
         <div className="page" data-density="hard">
           <div
             style={{
@@ -342,7 +336,7 @@ const BookLayout: React.FC = () => {
               justifyContent: "center",
               alignItems: "center",
               background:
-                "radial-gradient(circle at top, #c8985a, #865022 70%, #3e1d0b 100%)",
+                "radial-gradient(circle at top, #c8985a, #865022 70%, #3e1d0b 100%)"
             }}
           >
             <p
@@ -350,8 +344,8 @@ const BookLayout: React.FC = () => {
                 fontSize: "12px",
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
-                textAlign: "center" as const,
-                color: "rgba(18, 6, 2, 0.8)",
+                textAlign: "center",
+                color: "rgba(18, 6, 2, 0.8)"
               }}
             >
               FINIS • LIBER VITAE
@@ -363,5 +357,6 @@ const BookLayout: React.FC = () => {
   );
 };
 
-export default BookLayout;
+// И default, и именованный экспорт — чтобы работали оба варианта import
 export { BookLayout };
+export default BookLayout;
