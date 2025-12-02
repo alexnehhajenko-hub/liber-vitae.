@@ -1,10 +1,12 @@
 'use client';
 
 import React from 'react';
-import { SiteLayout } from '@/src/features/shell/components/SiteLayout';
-import { BookLayout } from '@/src/features/shell/components/BookLayout';
-import { QuestionPage } from '@/src/features/shell/components/QuestionPage';
-import { ManuscriptPage } from '@/src/features/shell/components/ManuscriptPage';
+
+// Важно: БЕЗ /src в пути
+import { SiteLayout } from '@/features/shell/components/SiteLayout';
+import { BookLayout } from '@/features/shell/components/BookLayout';
+import { QuestionPage } from '@/features/shell/components/QuestionPage';
+import { ManuscriptPage } from '@/features/shell/components/ManuscriptPage';
 
 type Question = {
   id: number;
@@ -32,21 +34,19 @@ const QUESTIONS: Question[] = [
 ];
 
 export default function BookPage() {
+  const totalPages = QUESTIONS.length + 1; // вопросы + финальный лист
+
   const pages = [
     ...QUESTIONS.map((q, index) => (
       <QuestionPage
         key={q.id}
         index={index}
-        total={QUESTIONS.length + 1}
+        total={totalPages}
         title={q.title}
         text={q.text}
       />
     )),
-    <ManuscriptPage
-      key="manuscript"
-      index={QUESTIONS.length}
-      total={QUESTIONS.length + 1}
-    />,
+    <ManuscriptPage key="manuscript" index={QUESTIONS.length} total={totalPages} />,
   ];
 
   return (
