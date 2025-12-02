@@ -7,7 +7,7 @@ type ManuscriptPageProps = {
 
 export const ManuscriptPage: React.FC<ManuscriptPageProps> = ({
   index,
-  total
+  total,
 }) => {
   return (
     <article className="lv-page">
@@ -29,16 +29,16 @@ export const ManuscriptPage: React.FC<ManuscriptPageProps> = ({
       </div>
 
       <div className="lv-page-actions">
-        <button type="button" className="lv-page-btn lv-page-btn--primary">
+        <button className="lv-page-btn lv-page-btn--primary" type="button">
           СОХРАНИТЬ В АРХИВ
         </button>
-        <button type="button" className="lv-page-btn lv-page-btn--secondary">
+        <button className="lv-page-btn lv-page-btn--secondary" type="button">
           НАЧАТЬ НОВЫЙ ТОМ
         </button>
       </div>
 
       <footer className="lv-page-footer">
-        <span className="lv-page-footer-text">
+        <span>
           Лист {index + 1} из {total}
         </span>
       </footer>
