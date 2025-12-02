@@ -3,7 +3,7 @@
 
 import React, { useEffect, useRef } from "react";
 
-export const BookLayout: React.FC = () => {
+const BookLayout: React.FC = () => {
   const bookRef = useRef<HTMLDivElement | null>(null);
   let pageFlip: any = null;
 
@@ -17,11 +17,10 @@ export const BookLayout: React.FC = () => {
       const St = (window as any).St;
 
       if (St?.PageFlip && bookRef.current) {
-        // Инициализируем PageFlip
         pageFlip = new St.PageFlip(bookRef.current, {
-          width: 550, // базовый размер страницы
+          width: 550,
           height: 733,
-          size: "stretch", // растягиваем под контейнер
+          size: "stretch",
           minWidth: 320,
           maxWidth: 1200,
           minHeight: 420,
@@ -29,10 +28,9 @@ export const BookLayout: React.FC = () => {
           maxShadowOpacity: 0.6,
           showCover: true,
           mobileScrollSupport: false,
-          usePortrait: true, // на телефоне будет одна страница
+          usePortrait: true, // на телефоне одна страница, на десктопе разворот
         });
 
-        // Загружаем страницы из HTML (все элементы .page внутри контейнера)
         const pages = bookRef.current.querySelectorAll(".page");
         pageFlip.loadFromHTML(pages);
         return;
@@ -53,7 +51,6 @@ export const BookLayout: React.FC = () => {
     };
   }, []);
 
-  // Общие стили "бумаги"
   const pageInnerStyle: React.CSSProperties = {
     width: "100%",
     height: "100%",
@@ -111,7 +108,6 @@ export const BookLayout: React.FC = () => {
           "radial-gradient(circle at top, #2b1206 0, #050202 55%, #000000 100%)",
       }}
     >
-      {/* Контейнер книги */}
       <div
         ref={bookRef}
         className="flip-book-container"
@@ -122,7 +118,7 @@ export const BookLayout: React.FC = () => {
           maxHeight: "720px",
         }}
       >
-        {/* ====== ОБЛОЖКА (страница 0, жёсткая) ====== */}
+        {/* ОБЛОЖКА (жёсткая) */}
         <div className="page" data-density="hard">
           <div
             style={{
@@ -152,7 +148,7 @@ export const BookLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* ====== СТРАНИЦА 1 — ТЕКСТ ====== */}
+        {/* СТРАНИЦА 1 — ТЕКСТ */}
         <div className="page">
           <div style={pageInnerStyle}>
             <header>
@@ -182,7 +178,7 @@ export const BookLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* ====== СТРАНИЦА 2 — ПОРТРЕТ + КНОПКИ ====== */}
+        {/* СТРАНИЦА 2 — ПОРТРЕТ + КНОПКИ */}
         <div className="page">
           <div style={pageInnerStyle}>
             <header
@@ -296,7 +292,7 @@ export const BookLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* ====== СТРАНИЦА 3 — ГЛАВА I ====== */}
+        {/* СТРАНИЦА 3 — ГЛАВА I */}
         <div className="page">
           <div style={pageInnerStyle}>
             <header
@@ -337,7 +333,7 @@ export const BookLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* ====== ЗАДНЯЯ ОБЛОЖКА (жёсткая) ====== */}
+        {/* ЗАДНЯЯ ОБЛОЖКА (жёсткая) */}
         <div className="page" data-density="hard">
           <div
             style={{
@@ -349,13 +345,13 @@ export const BookLayout: React.FC = () => {
             }}
           >
             <p
-              style={{
+              style({
                 fontSize: "12px",
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
                 textAlign: "center",
                 color: "rgba(18, 6, 2, 0.8)",
-              }}
+              } as React.CSSProperties)}
             >
               FINIS • LIBER VITAE
             </p>
@@ -365,3 +361,7 @@ export const BookLayout: React.FC = () => {
     </main>
   );
 };
+
+// И default, и именованный экспорт — чтобы работали оба варианта import
+export { BookLayout };
+export default BookLayout;
