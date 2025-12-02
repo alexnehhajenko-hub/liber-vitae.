@@ -10,7 +10,8 @@
 
   --font-heading: "Playfair Display", "Times New Roman", serif;
   --font-body: "Garamond", "Georgia", serif;
-  --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
 
   --layout-max-width: 1200px;
 }
@@ -202,59 +203,37 @@ body {
   }
 }
 
-/* Книга-разворот */
+/* Старый «разворот» — теперь как контейнер под один лист */
 
 .lv-book-layout {
   position: relative;
   max-width: 1100px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-@media (min-width: 900px) {
-  .lv-book-layout {
-    grid-template-columns: 1fr 1fr;
-    gap: 18px;
-  }
+  padding: 24px 12px 40px;
+  display: flex;
+  justify-content: center;
 }
 
 .lv-book-shadow {
   position: absolute;
   inset: -12px;
-  background: radial-gradient(circle at center, rgba(0, 0, 0, 0.6), transparent 70%);
+  background: radial-gradient(
+    circle at center,
+    rgba(0, 0, 0, 0.6),
+    transparent 70%
+  );
   filter: blur(18px);
   z-index: 0;
   pointer-events: none;
 }
 
-.lv-book-page {
-  position: relative;
-  z-index: 1;
-  background: radial-gradient(circle at top, #f8e7c6 0, #f3d9ad 55%, #e8cda0 100%);
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
-  padding: 20px 18px;
-  color: var(--color-text);
-  font-family: var(--font-body);
-}
-
-@media (min-width: 900px) {
-  .lv-book-page {
-    padding: 26px 22px;
-  }
-}
-
-/* Страница с текстом */
+/* Заголовки старой страницы (используются в динамическом маршруте) */
 
 .lv-book-heading {
-  text-align: center;
+  text-align: left;
   font-family: var(--font-heading);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-size: 14px;
-  margin-bottom: 4px;
+  font-size: 22px;
+  margin-bottom: 12px;
 }
 
 .lv-book-subheading {
@@ -282,7 +261,7 @@ body {
   color: #b37227;
 }
 
-/* Страница портрета */
+/* Страница портрета (для старого /book, если ещё используем) */
 
 .lv-book-portrait-frame {
   width: 100%;
@@ -317,7 +296,7 @@ body {
   color: #5d4731;
 }
 
-/* Сургучная кнопка */
+/* Сургучные кнопки */
 
 .lv-wax-button-row {
   margin-top: 22px;
@@ -355,7 +334,12 @@ body {
   width: 42px;
   height: 42px;
   border-radius: 999px;
-  background: radial-gradient(circle at 30% 30%, #f4a27f, #8b2415 70%, #3e0c08 100%);
+  background: radial-gradient(
+    circle at 30% 30%,
+    #f4a27f,
+    #8b2415 70%,
+    #3e0c08 100%
+  );
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
   transform: translateX(-50%);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
@@ -369,9 +353,13 @@ body {
 .lv-wax-button:active::before {
   transform: translateX(-50%) translateY(1px) scale(0.97);
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.55);
-}/* ============================
-   Книга: один лист / разворот
+}
+
+/* ============================
+   НОВАЯ КНИГА: один лист / разворот
    ============================ */
+
+/* Внешняя оболочка книги */
 
 .lv-book-shell {
   min-height: calc(100vh - 80px);
@@ -388,19 +376,22 @@ body {
   margin: 0 auto;
 }
 
-/* Телефон: строго один лист */
+/* Телефон: только один лист */
+
 .lv-book-viewport--single {
   max-width: 460px;
 }
 
 /* Планшет/десктоп: разворот */
+
 .lv-book-viewport--spread {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
 }
 
-/* Переплёт посередине (виден только на spread) */
+/* Переплёт посередине (для разворота) */
+
 .lv-book-spine {
   position: absolute;
   inset-block: 0;
@@ -422,24 +413,74 @@ body {
   justify-content: center;
 }
 
-/* Сам «лист» книги */
-.lv-page {
-  width: 100%;
-  max-width: 460px;
-  border-radius: 20px;
-  padding: 24px 20px;
+/* САМА СТРАНИЦА (и старая, и новая) */
+
+.lv-page,
+.lv-book-page {
+  position: relative;
+  z-index: 1;
+
+  width: min(100%, 420px);
+  margin: 24px auto;
+  padding: 26px 22px;
+  aspect-ratio: 3 / 4.2; /* пропорции листа */
+
+  border-radius: 18px;
   background: radial-gradient(
-    circle at top,
-    #f8e7c6 0,
-    #f3d9ad 55%,
-    #e8cda0 100%
+    circle at 50% 0%,
+    #fff7e4 0,
+    #f3e1c1 55%,
+    #e3c691 100%
   );
   box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.6),
+    0 24px 48px rgba(0, 0, 0, 0.75),
     0 0 0 1px rgba(0, 0, 0, 0.35);
+
   color: var(--color-text);
   font-family: var(--font-body);
 }
+
+/* Блик и лёгкий сгиб */
+
+.lv-page::before,
+.lv-book-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.6) 0,
+    transparent 18%,
+    transparent 82%,
+    rgba(0, 0, 0, 0.08) 100%
+  );
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+/* Тень под листом */
+
+.lv-page::after,
+.lv-book-page::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -20px;
+  width: 78%;
+  height: 24px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 0, 0, 0.7),
+    transparent 70%
+  );
+  filter: blur(2px);
+  z-index: -1;
+}
+
+/* Заголовок / подзаголовок новой страницы */
 
 .lv-page-header {
   text-align: center;
@@ -471,6 +512,7 @@ body {
 }
 
 /* Блок с ответом на вопрос */
+
 .lv-page-answer {
   margin-bottom: 20px;
 }
@@ -485,6 +527,7 @@ body {
 }
 
 /* Блок портрета на финальной странице */
+
 .lv-page-portrait-block {
   margin-bottom: 20px;
 }
@@ -510,6 +553,7 @@ body {
 }
 
 /* Кнопки на финальной странице */
+
 .lv-page-actions {
   display: flex;
   flex-direction: column;
@@ -550,6 +594,7 @@ body {
 }
 
 /* Подвал страницы */
+
 .lv-page-footer {
   display: flex;
   justify-content: center;
@@ -558,6 +603,7 @@ body {
 }
 
 /* Навигация книги */
+
 .lv-book-controls {
   margin-top: 16px;
   display: flex;
@@ -594,6 +640,7 @@ body {
 }
 
 /* На очень маленьких экранах принудительно один режим */
+
 @media (max-width: 767px) {
   .lv-book-viewport--spread {
     display: block;
