@@ -11,7 +11,7 @@ export const QuestionPage: React.FC<QuestionPageProps> = ({
   index,
   total,
   title,
-  text
+  text,
 }) => {
   return (
     <article className="lv-page">
@@ -20,19 +20,16 @@ export const QuestionPage: React.FC<QuestionPageProps> = ({
         <h1 className="lv-page-title">{title}</h1>
       </header>
 
-      <p className="lv-page-body">
-        {text}
-      </p>
+      <p className="lv-page-body">{text}</p>
 
       <div className="lv-page-answer">
-        {/* потом тут будет реальное поле ответа / ИИ */}
         <div className="lv-page-answer-placeholder">
-          Здесь будет ваш ответ на этот вопрос.
+          Здесь появится ваш ответ на этот вопрос (и философский портрет).
         </div>
       </div>
 
       <footer className="lv-page-footer">
-        <span className="lv-page-footer-text">
+        <span>
           Лист {index + 1} из {total}
         </span>
       </footer>
