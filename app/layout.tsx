@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,6 +24,12 @@ export default function RootLayout({
         }}
       >
         {children}
+
+        {/* Подключаем библиотеку PageFlip для эффекта листания */}
+        <Script
+          src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.min.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
