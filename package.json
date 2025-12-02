@@ -10,12 +10,10 @@
   "dependencies": {
     "next": "latest",
     "react": "latest",
-    "react-dom": "latest"
+    "react-dom": "latest",
+    "page-flip": "^2.0.7"
   },
   "devDependencies": {
     "typescript": "latest",
     "@types/react": "latest",
-    "@types/react-dom": "latest",
-    "@types/node": "latest"
-  }
-}
+   
