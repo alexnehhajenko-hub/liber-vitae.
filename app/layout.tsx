@@ -1,7 +1,7 @@
 // app/layout.tsx
 import type { Metadata } from "next";
-import "./globals.css";
 import Script from "next/script";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Liber Vitae",
@@ -16,14 +16,9 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <head>
-        {/* CSS PageFlip */}
-        <link
-          rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/st-pageflip@2.0.7/dist/css/pageflip.min.css"
-        />
-        {/* JS PageFlip — даём ему загрузиться ДО рендеринга */}
+        {/* Подключаем библиотеку PageFlip */}
         <Script
-          src="https://cdn.jsdelivr.net/npm/st-pageflip@2.0.7/dist/js/pageflip.min.js"
+          src="https://cdn.jsdelivr.net/npm/page-flip@2.0.8/dist/js/page-flip.browser.min.js"
           strategy="beforeInteractive"
         />
       </head>
@@ -34,6 +29,7 @@ export default function RootLayout({
           fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
           backgroundColor: "#050202",
           color: "#f5e9d2",
+          overflow: "hidden", // убираем вертикальный скролл
         }}
       >
         {children}
