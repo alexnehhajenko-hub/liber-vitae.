@@ -345,13 +345,13 @@ const BookLayout: React.FC = () => {
             }}
           >
             <p
-              style({
+              style={{
                 fontSize: "12px",
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
                 textAlign: "center",
                 color: "rgba(18, 6, 2, 0.8)",
-              } as React.CSSProperties)}
+              }}
             >
               FINIS • LIBER VITAE
             </p>
