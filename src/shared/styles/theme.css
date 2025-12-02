@@ -1,142 +1,63 @@
-/* ===== LIBER VITAE – ОБЪЁМНАЯ КНИГА ===== */
+/* ==== Мобильная страница с фото-фоном книги ==== */
 
-/* Сцена с перспективой */
-.lv-book-scene {
+.lv-book-scene--mobile {
   display: flex;
   justify-content: center;
-  padding: 40px 0 80px;
+  padding: 32px 0 64px;
   background: radial-gradient(circle at 50% -10%, #3b2412 0, #120804 55%);
 }
 
-/* телефон */
-.lv-book-scene--mobile {
-  perspective: 1400px;
-}
-
-/* десктоп */
-.lv-book-scene--desktop {
-  perspective: 1800px;
-}
-
-/* Общий контейнер тома */
-.lv-book-volume {
-  position: relative;
-  transform-style: preserve-3d;
-}
-
-/* ОДНА страница (телефон) – объёмный том */
-.lv-book-volume--single {
+.lv-book-page-photo {
   width: 86vw;
   max-width: 420px;
-  transform-origin: center bottom;
-  transform: rotateX(26deg) rotateY(-18deg);
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.95);
-}
-
-/* Разворот (планшет/десктоп) */
-.lv-book-volume--spread {
-  display: flex;
-  align-items: stretch;
-  transform-origin: center center;
-  transform: rotateX(16deg) rotateY(-22deg);
-  box-shadow: 0 32px 110px rgba(0, 0, 0, 0.98);
-  border-radius: 22px;
-}
-
-/* При наведении – чуть «поднимаем» книгу */
-@media (hover: hover) and (pointer: fine) {
-  .lv-book-volume--spread:hover {
-    transform: rotateX(12deg) rotateY(-18deg) translateY(-4px);
-    box-shadow: 0 38px 140px rgba(0, 0, 0, 1);
-  }
-}
-
-/* Толщина страниц снизу (телефон) */
-.lv-book-edge--bottom {
-  position: absolute;
-  inset: auto 16px -10px 16px;
-  height: 16px;
-  border-radius: 0 0 14px 14px;
-  background: linear-gradient(
-    to bottom,
-    rgba(250, 235, 210, 0.9),
-    rgba(180, 135, 85, 0.9)
-  );
+  aspect-ratio: 3 / 4;
+  margin: 0 auto;
+  background-image: url("/images/book-page-mobile.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 18px;
   box-shadow:
-    0 8px 18px rgba(0, 0, 0, 0.9),
-    inset 0 0 0 1px rgba(120, 80, 40, 0.6);
-  transform: translateZ(-6px);
-}
-
-/* Базовый вид страницы */
-.lv-book-page {
+    0 18px 45px rgba(0, 0, 0, 0.95),
+    0 0 0 1px rgba(60, 35, 18, 0.7);
   position: relative;
-  background:
-    radial-gradient(circle at 10% 0%, rgba(255, 255, 255, 0.7), transparent 60%),
-    radial-gradient(circle at 90% 100%, rgba(180, 130, 80, 0.4), transparent 60%),
-    linear-gradient(135deg, #f7e1bc 0%, #f0d19a 48%, #e4ba7b 100%);
-  box-shadow:
-    0 0 0 1px rgba(110, 70, 40, 0.12),
-    inset 0 0 40px rgba(150, 105, 60, 0.5);
-  padding: 32px 26px 36px;
+  transform-origin: center bottom;
+  transform: perspective(1000px) rotateX(12deg);
 }
 
-/* Одна страница – скругление по кругу */
-.lv-book-page--single {
-  border-radius: 16px;
-}
-
-/* Левая страница разворота – корешок и складка */
-.lv-book-page--left {
-  border-radius: 18px 0 0 18px;
-  min-width: 360px;
-  max-width: 420px;
-}
-
-.lv-book-page--left::after {
-  content: "";
+.lv-book-page-photo__content {
   position: absolute;
-  top: 0;
-  right: -4px;
-  width: 20px;
-  height: 100%;
-  background: linear-gradient(
-    to right,
-    rgba(40, 20, 10, 0.8),
-    rgba(0, 0, 0, 0.0)
-  );
-  filter: blur(4px);
-  pointer-events: none;
+  inset: 10% 11% 12% 11%; /* поля внутри страницы */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
-/* Правая страница разворота */
-.lv-book-page--right {
-  border-radius: 0 18px 18px 0;
-  min-width: 360px;
-  max-width: 480px;
-  box-shadow:
-    14px 0 28px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(110, 70, 40, 0.18),
-    inset 0 0 32px rgba(150, 105, 60, 0.55);
+/* Мобильная типографика внутри страницы */
+
+.lv-book-heading-block--mobile {
+  text-align: center;
+  margin-bottom: 12px;
 }
 
-/* Свет сверху, лежащая книга под углом (телефон) */
-.lv-book-page--single::before {
-  content: "";
-  position: absolute;
-  inset: -12px -10px auto -10px;
-  border-radius: 26px;
-  background: radial-gradient(
-    circle at 50% 0,
-    rgba(255, 255, 255, 0.18),
-    transparent 70%
-  );
-  pointer-events: none;
+.lv-book-body--mobile p {
+  font-size: 14px;
+  line-height: 1.45;
 }
 
-/* Рамка портрета – более «врезанная» */
-.lv-book-portrait-frame--single {
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, 0.85),
-    inset 0 0 0 2px rgba(210, 165, 95, 0.95);
+.lv-book-portrait-frame--mobile {
+  margin-top: 14px;
+  margin-bottom: 8px;
+}
+
+.lv-book-portrait-caption--mobile {
+  font-size: 12px;
+  margin-bottom: 16px;
+}
+
+.lv-wax-button-row--mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
 }
