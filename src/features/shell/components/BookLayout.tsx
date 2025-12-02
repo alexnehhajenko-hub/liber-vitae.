@@ -5,7 +5,7 @@ import React, { useEffect, useRef } from "react";
 
 const BookLayout: React.FC = () => {
   const bookRef = useRef<HTMLDivElement | null>(null);
-  let pageFlip: any = null;
+  const pageFlipRef = useRef<any | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -17,7 +17,7 @@ const BookLayout: React.FC = () => {
       const St = (window as any).St;
 
       if (St?.PageFlip && bookRef.current) {
-        pageFlip = new St.PageFlip(bookRef.current, {
+        pageFlipRef.current = new St.PageFlip(bookRef.current, {
           width: 550,
           height: 733,
           size: "stretch",
@@ -28,11 +28,11 @@ const BookLayout: React.FC = () => {
           maxShadowOpacity: 0.6,
           showCover: true,
           mobileScrollSupport: false,
-          usePortrait: true, // на телефоне одна страница, на десктопе разворот
+          usePortrait: true, // телефон/планшет — одна страница, десктоп — разворот
         });
 
         const pages = bookRef.current.querySelectorAll(".page");
-        pageFlip.loadFromHTML(pages);
+        pageFlipRef.current.loadFromHTML(pages);
         return;
       }
 
@@ -45,50 +45,51 @@ const BookLayout: React.FC = () => {
     tryInit();
 
     return () => {
-      if (pageFlip) {
-        pageFlip.destroy();
+      if (pageFlipRef.current) {
+        pageFlipRef.current.destroy();
+        pageFlipRef.current = null;
       }
     };
   }, []);
 
-  const pageInnerStyle: React.CSSProperties = {
+  const pageInnerStyle = {
     width: "100%",
     height: "100%",
     borderRadius: "18px",
     padding: "32px 28px",
-    boxSizing: "border-box",
+    boxSizing: "border-box" as const,
     background: "radial-gradient(circle at top, #f9ecce, #e3c79a)",
     boxShadow:
       "0 18px 45px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(140, 98, 47, 0.25)",
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "column" as const,
     justifyContent: "space-between",
   };
 
-  const titleStyle: React.CSSProperties = {
+  const titleStyle = {
     fontSize: "18px",
     letterSpacing: "0.32em",
-    textAlign: "center",
+    textAlign: "center" as const,
     marginBottom: "12px",
     color: "#7c5328",
   };
 
-  const h1Style: React.CSSProperties = {
+  const h1Style = {
     fontSize: "24px",
     letterSpacing: "0.12em",
-    textAlign: "center",
+    textAlign: "center" as const,
     margin: "0 0 22px 0",
     color: "#5b3b20",
   };
 
-  const bodyTextStyle: React.CSSProperties = {
+  const bodyTextStyle = {
     fontSize: "15px",
     lineHeight: 1.55,
     color: "#5a4225",
   };
 
-  const dropcapStyle: React.CSSProperties = {
-    float: "left",
+  const dropcapStyle = {
+    float: "left" as const,
     fontSize: "42px",
     lineHeight: "32px",
     marginRight: "8px",
@@ -349,7 +350,7 @@ const BookLayout: React.FC = () => {
                 fontSize: "12px",
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
-                textAlign: "center",
+                textAlign: "center" as const,
                 color: "rgba(18, 6, 2, 0.8)",
               }}
             >
@@ -362,6 +363,5 @@ const BookLayout: React.FC = () => {
   );
 };
 
-// И default, и именованный экспорт — чтобы работали оба варианта import
-export { BookLayout };
 export default BookLayout;
+export { BookLayout };
