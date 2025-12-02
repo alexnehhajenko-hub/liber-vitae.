@@ -1,59 +1,57 @@
+'use client';
+
+import React from 'react';
+import { SiteLayout } from '@/src/features/shell/components/SiteLayout';
+import { BookLayout } from '@/src/features/shell/components/BookLayout';
+import { QuestionPage } from '@/src/features/shell/components/QuestionPage';
+import { ManuscriptPage } from '@/src/features/shell/components/ManuscriptPage';
+
+type Question = {
+  id: number;
+  title: string;
+  text: string;
+};
+
+const QUESTIONS: Question[] = [
+  {
+    id: 1,
+    title: 'Вопрос I',
+    text: 'О чём вы мечтаете, когда думаете о своей жизни через десять лет?'
+  },
+  {
+    id: 2,
+    title: 'Вопрос II',
+    text: 'Какие три качества вы цените в себе больше всего?'
+  },
+  {
+    id: 3,
+    title: 'Вопрос III',
+    text: 'Что для вас значит «оставить след» в этом мире?'
+  }
+  // сюда затем подставим реальные 40 вопросов
+];
+
 export default function BookPage() {
+  const pages = [
+    ...QUESTIONS.map((q, index) => (
+      <QuestionPage
+        key={q.id}
+        index={index}
+        total={QUESTIONS.length + 1} // +1 — финальный лист-манускрипт
+        title={q.title}
+        text={q.text}
+      />
+    )),
+    <ManuscriptPage
+      key="manuscript"
+      index={QUESTIONS.length}
+      total={QUESTIONS.length + 1}
+    />
+  ];
+
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#120805",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "960px",
-          width: "100%",
-          borderRadius: "24px",
-          padding: "32px 24px",
-          border: "1px solid rgba(245, 233, 210, 0.18)",
-          background:
-            "radial-gradient(circle at top left, rgba(250, 215, 160, 0.08), transparent 60%), #1a0e07",
-          boxShadow:
-            "0 20px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(0, 0, 0, 0.6)",
-          color: "#f5e9d2",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "24px",
-            marginBottom: "16px",
-          }}
-        >
-          Черновик книги Liber Vitae
-        </h1>
-
-        <p
-          style={{
-            fontSize: "16px",
-            lineHeight: 1.5,
-            opacity: 0.9,
-            marginBottom: "24px",
-          }}
-        >
-          Это тестовая страница <code>/book</code>. Маршрут работает. Дальше
-          сюда добавим разворот книги с портретом и текстом.
-        </p>
-
-        <p
-          style={{
-            fontSize: "14px",
-            opacity: 0.7,
-          }}
-        >
-          Вернись на главную и попробуй снова нажать кнопку «Книга обо мне».
-        </p>
-      </div>
-    </main>
+    <SiteLayout>
+      <BookLayout pages={pages} />
+    </SiteLayout>
   );
 }
