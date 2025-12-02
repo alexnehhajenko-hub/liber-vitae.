@@ -1,6 +1,7 @@
+// app/layout.tsx
 import type { Metadata } from "next";
-import Script from "next/script";
 import "./globals.css";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Liber Vitae",
@@ -14,6 +15,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru">
+      <head>
+        {/* CSS PageFlip */}
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/st-pageflip@2.0.7/dist/css/pageflip.min.css"
+        />
+        {/* JS PageFlip — даём ему загрузиться ДО рендеринга */}
+        <Script
+          src="https://cdn.jsdelivr.net/npm/st-pageflip@2.0.7/dist/js/pageflip.min.js"
+          strategy="beforeInteractive"
+        />
+      </head>
       <body
         style={{
           margin: 0,
@@ -24,12 +37,6 @@ export default function RootLayout({
         }}
       >
         {children}
-
-        {/* Подключаем библиотеку PageFlip для эффекта листания */}
-        <Script
-          src="https://cdn.jsdelivr.net/npm/page-flip/dist/js/page-flip.browser.min.js"
-          strategy="afterInteractive"
-        />
       </body>
     </html>
   );
