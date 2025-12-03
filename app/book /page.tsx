@@ -28,7 +28,7 @@ const QUESTIONS: Question[] = [
     title: 'Вопрос III',
     text: 'Что для вас значит «оставить след» в этом мире?',
   },
-  // потом добавим сюда все 40 вопросов
+  // сюда потом добавим все 40 вопросов
 ];
 
 export default function BookPage() {
