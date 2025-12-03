@@ -19,7 +19,7 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-book-shadow" />
 
         <div className="lv-book-open">
-          {/* Левая страница — декоративная, чтобы было видно разворот */}
+          {/* Левая страница — декоративная, чтобы был разворот */}
           <div className="lv-book-open-page lv-book-open-page--left" />
 
           {/* Правая страница — с текстом */}
