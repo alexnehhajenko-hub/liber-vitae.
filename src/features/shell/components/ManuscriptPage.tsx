@@ -44,5 +44,6 @@ export const ManuscriptPage: React.FC<ManuscriptPageProps> = ({
         </span>
       </footer>
     </article>
+
   );
 };
