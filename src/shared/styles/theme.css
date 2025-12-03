@@ -401,15 +401,16 @@ a {
 
 .lv-book-flip-wrapper {
   position: relative;
-  width: min(96vw, 640px);
+  width: min(96vw, 720px);
   filter: drop-shadow(0 32px 60px rgba(0, 0, 0, 0.95));
   transform-origin: center bottom;
-  transform: perspective(1900px) rotateX(9deg);
+  transform: perspective(1900px) rotateX(8deg);
 }
 
 @media (min-width: 900px) {
   .lv-book-flip-wrapper {
-    width: min(72vw, 780px);
+    width: min(72vw, 820px);
+    transform: perspective(2100px) rotateX(7deg);
   }
 }
 
@@ -473,48 +474,22 @@ a {
   z-index: 1;
 }
 
-/* внутренние страницы flipbook */
+/* внутренние страницы flipbook — старая бумага */
 
 .lv-flip-page {
   position: relative;
   padding: 42px 34px 46px;
   border-radius: 26px 32px 26px 24px; /* правый край чуть более округлый */
   background:
-    /* неровный край снизу */
+    /* лёгкий градиент от корешка */
     linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.04) 0,
-      rgba(0, 0, 0, 0.08) 86%,
-      rgba(0, 0, 0, 0.2) 100%
+      to right,
+      rgba(0, 0, 0, 0.18),
+      rgba(0, 0, 0, 0.02) 26%,
+      rgba(255, 255, 255, 0.12) 70%,
+      rgba(0, 0, 0, 0.18) 100%
     ),
-    /* лёгкая «грязь» */
-    repeating-linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.06) 0,
-      rgba(0, 0, 0, 0.06) 1px,
-      transparent 2px,
-      transparent 4px
-    ),
-    /* базовый тёплый градиент бумаги */
-    radial-gradient(circle at 20% 0%, #fff3d9 0, #f2d5a2 42%, #dfbc87 100%);
-  box-shadow:
-    0 24px 48px rgba(0, 0, 0, 0.85),
-    0 0 0 1px rgba(120, 96, 62, 0.35);
-}
-
-/* затемнение у корешка + блики */
-
-.lv-flip-page {
-  position: relative;
-  padding: 42px 34px 46px;
-  border-radius: 26px 32px 26px 24px;
-  background:
-    linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.05) 0,
-      rgba(0, 0, 0, 0.1) 86%,
-      rgba(0, 0, 0, 0.24) 100%
-    ),
+    /* «грязь» и волокна */
     repeating-linear-gradient(
       to bottom,
       rgba(0, 0, 0, 0.08) 0,
@@ -522,14 +497,11 @@ a {
       transparent 2px,
       transparent 4px
     ),
+    /* базовый тёплый градиент бумаги */
     radial-gradient(circle at 20% 0%, #fff3d9 0, #f0d1a0 42%, #ddb781 100%);
   box-shadow:
     0 26px 52px rgba(0, 0, 0, 0.9),
     0 0 0 1px rgba(120, 96, 62, 0.4);
-}
-  mix-blend-mode: multiply;
-  opacity: 0.75;
-  pointer-events: none;
 }
 
 /* «подогнутый» правый край */
@@ -548,11 +520,11 @@ a {
     rgba(0, 0, 0, 0.18) 40%,
     rgba(255, 255, 255, 0.5) 100%
   );
-  opacity: 0.78;
+  opacity: 0.8;
   pointer-events: none;
 }
 
-/* Контент страницы */
+/* Контент страницы внутри flipbook */
 
 .lv-page {
   position: relative;
@@ -635,7 +607,7 @@ a {
   color: #826345;
 }
 
-/* Панель управления */
+/* Панель управления страницами */
 
 .lv-book-controls {
   margin-top: 18px;
@@ -682,11 +654,26 @@ a {
   color: rgba(246, 240, 233, 0.85);
 }
 
+/* Чуть увеличиваем текст и «масштаб» страницы на мобильных */
+
+@media (max-width: 600px) {
+  .lv-page-title {
+    font-size: 20px;
+  }
+
+  .lv-page-body {
+    font-size: 17px;
+  }
+
+  .lv-book-flip-wrapper {
+    width: 100vw;
+    transform: perspective(1700px) rotateX(6deg);
+  }
+}
+
 /* =========================================================
    Мобильная сцена с фото-фоном (если пригодится позже)
    ========================================================= */
-
-/* ==== Мобильная страница с фото-фоном книги ==== */
 
 .lv-book-scene--mobile {
   display: flex;
