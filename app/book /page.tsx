@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { SiteLayout } from '@/features/shell/components/SiteLayout';
-import { BookLayout } from '@/features/shell/components/BookLayout';
-import { QuestionPage } from '@/features/shell/components/QuestionPage';
-import { ManuscriptPage } from '@/features/shell/components/ManuscriptPage';
+import { SiteLayout } from '../../src/features/shell/components/SiteLayout';
+import { BookLayout } from '../../src/features/shell/components/BookLayout';
+import { QuestionPage } from '../../src/features/shell/components/QuestionPage';
+import { ManuscriptPage } from '../../src/features/shell/components/ManuscriptPage';
 
 type Question = {
   id: number;
@@ -28,7 +28,7 @@ const QUESTIONS: Question[] = [
     title: 'Вопрос III',
     text: 'Что для вас значит «оставить след» в этом мире?',
   },
-  // потом сюда добавим все 40 вопросов
+  // потом добавим сюда все 40 вопросов
 ];
 
 export default function BookPage() {
