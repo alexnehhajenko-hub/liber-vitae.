@@ -50,7 +50,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           maxHeight={900}
           maxShadowOpacity={0.5}
           showCover={false}
-          usePortrait={true} // на телефоне — одна страница, на широком — разворот
+          usePortrait={true} // на телефоне одна страница, на широком — разворот
           mobileScrollSupport={false}
           className="lv-flip-book"
           ref={bookRef}
