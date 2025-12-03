@@ -41,14 +41,15 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     <div className="lv-book-shell">
       <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
-          width={420}
-          height={560}
+          // делаем базовый размер страницы крупнее
+          width={520}
+          height={720}
           size="stretch"
-          minWidth={300}
+          minWidth={320}
           maxWidth={900}
-          minHeight={400}
-          maxHeight={900}
-          maxShadowOpacity={0.5}
+          minHeight={480}
+          maxHeight={1100}
+          maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true} // на телефоне одна страница, на широком — разворот
           mobileScrollSupport={false}
