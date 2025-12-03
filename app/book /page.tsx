@@ -1,8 +1,6 @@
 'use client';
 
 import React from 'react';
-
-// Важно: БЕЗ /src в пути
 import { SiteLayout } from '@/features/shell/components/SiteLayout';
 import { BookLayout } from '@/features/shell/components/BookLayout';
 import { QuestionPage } from '@/features/shell/components/QuestionPage';
@@ -30,7 +28,7 @@ const QUESTIONS: Question[] = [
     title: 'Вопрос III',
     text: 'Что для вас значит «оставить след» в этом мире?',
   },
-  // сюда потом добавим все 40 вопросов
+  // потом сюда добавим все 40 вопросов
 ];
 
 export default function BookPage() {
@@ -46,7 +44,11 @@ export default function BookPage() {
         text={q.text}
       />
     )),
-    <ManuscriptPage key="manuscript" index={QUESTIONS.length} total={totalPages} />,
+    <ManuscriptPage
+      key="manuscript"
+      index={QUESTIONS.length}
+      total={totalPages}
+    />,
   ];
 
   return (
