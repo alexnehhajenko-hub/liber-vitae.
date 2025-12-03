@@ -1,6 +1,7 @@
 // app/[slug]/page.tsx
 
-import BookLayout from "../../src/features/shell/components/BookLayout";
+import React from 'react';
+import { SiteLayout } from '../../src/features/shell/components/SiteLayout';
 
 type PageProps = {
   params: {
@@ -8,30 +9,21 @@ type PageProps = {
   };
 };
 
-export default function BookSlugPage({ params }: PageProps) {
-  const { slug } = params;
+export default function DynamicPage({ params }: PageProps) {
+  const slug = decodeURIComponent(params.slug ?? '');
 
-  // Для адреса /book показываем разворот книги
-  if (slug === "book") {
-    return <BookLayout />;
-  }
-
-  // Для остальных адресов — простой текст (можно потом заменить)
   return (
-    <main className="lv-site-main">
-      <div className="lv-book-scene">
-        <section className="lv-book-page lv-book-page--text">
-          <header className="lv-book-heading-block">
-            <h1 className="lv-book-title">Страница: {slug}</h1>
-          </header>
-          <div className="lv-book-body">
-            <p>
-              Это тестовый динамический маршрут <code>/{slug}</code>. Позже мы
-              сделаем здесь другие экраны (архив, настройки и т.п.).
-            </p>
-          </div>
-        </section>
+    <SiteLayout>
+      <div className="lv-book-layout">
+        <div className="lv-book-shadow" />
+        <article className="lv-book-page">
+          <h1 className="lv-book-heading">Страница: {slug}</h1>
+          <p className="lv-book-body">
+            Это тестовый динамический маршрут /{slug}. Позже мы сделаем здесь
+            другие экраны (архив, настройки и т.п.).
+          </p>
+        </article>
       </div>
-    </main>
+    </SiteLayout>
   );
 }
