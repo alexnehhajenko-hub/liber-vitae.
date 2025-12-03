@@ -391,49 +391,118 @@ a {
 
 .lv-book-shell {
   margin: 0 auto;
-  padding: 28px 0 40px;
+  padding: 12px 0 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  perspective: 1600px;
+  perspective: 1800px;
 }
 
 .lv-book-flip-wrapper {
-  width: min(94vw, 520px);
-  filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.8));
+  position: relative;
+  width: min(96vw, 620px);
+  filter: drop-shadow(0 30px 55px rgba(0, 0, 0, 0.9));
+  transform-origin: center bottom;
+  transform: perspective(1800px) rotateX(10deg);
 }
 
 @media (min-width: 900px) {
   .lv-book-flip-wrapper {
-    width: min(70vw, 720px);
+    width: min(72vw, 780px);
   }
 }
 
+/* Толстый переплёт слева */
+
+.lv-book-flip-wrapper::before {
+  content: "";
+  position: absolute;
+  left: -26px;
+  top: 10%;
+  bottom: 10%;
+  width: 40px;
+  border-radius: 22px;
+  background:
+    linear-gradient(
+      to right,
+      #2b1910 0%,
+      #4a2a18 25%,
+      #3a2114 55%,
+      #24130a 100%
+    );
+  box-shadow:
+    6px 0 14px rgba(0, 0, 0, 0.7),
+    0 18px 26px rgba(0, 0, 0, 0.85);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Стопка страниц справа */
+
+.lv-book-flip-wrapper::after {
+  content: "";
+  position: absolute;
+  right: -22px;
+  top: 8%;
+  bottom: 8%;
+  width: 26px;
+  border-radius: 0 20px 20px 0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      #f3ddbc 0,
+      #f3ddbc 3px,
+      #e3c79c 4px,
+      #d8b989 5px
+    );
+  box-shadow:
+    -2px 0 6px rgba(0, 0, 0, 0.45),
+    0 18px 26px rgba(0, 0, 0, 0.6);
+  opacity: 0.95;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .lv-flip-book {
+  position: relative;
   margin: 24px auto;
-  border-radius: 24px;
+  border-radius: 26px;
   overflow: visible;
   touch-action: pan-y;
+  z-index: 1;
 }
 
 /* внутренние страницы flipbook */
 
 .lv-flip-page {
   position: relative;
-  padding: 38px 32px 44px;
-  border-radius: 24px;
+  padding: 42px 34px 46px;
+  border-radius: 26px 32px 26px 24px; /* правый край чуть более округлый */
   background:
+    /* неровный край снизу */
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.04) 0,
+      rgba(0, 0, 0, 0.08) 86%,
+      rgba(0, 0, 0, 0.2) 100%
+    ),
+    /* лёгкая «грязь» */
     repeating-linear-gradient(
       to bottom,
-      rgba(255, 255, 255, 0.05) 0,
-      rgba(255, 255, 255, 0.05) 1px,
-      rgba(0, 0, 0, 0.02) 2px,
-      rgba(0, 0, 0, 0.02) 3px
+      rgba(0, 0, 0, 0.06) 0,
+      rgba(0, 0, 0, 0.06) 1px,
+      transparent 2px,
+      transparent 4px
     ),
-    radial-gradient(circle at top, #fdf2d8 0, #f1d5a1 44%, #e2c08b 100%);
-  box-shadow: 0 22px 45px rgba(0, 0, 0, 0.75);
+    /* базовый тёплый градиент бумаги */
+    radial-gradient(circle at 20% 0%, #fff3d9 0, #f2d5a2 42%, #dfbc87 100%);
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(120, 96, 62, 0.35);
 }
+
+/* затемнение у корешка + блики */
 
 .lv-flip-page::before {
   content: "";
@@ -443,34 +512,36 @@ a {
   background:
     radial-gradient(
       circle at left center,
-      rgba(0, 0, 0, 0.26),
+      rgba(0, 0, 0, 0.3),
       transparent 60%
     ),
     radial-gradient(
-      circle at 20% 10%,
-      rgba(255, 255, 255, 0.25),
+      circle at 15% 5%,
+      rgba(255, 255, 255, 0.35),
       transparent 55%
     );
   mix-blend-mode: multiply;
-  opacity: 0.7;
+  opacity: 0.75;
   pointer-events: none;
 }
+
+/* «подогнутый» правый край */
 
 .lv-flip-page::after {
   content: "";
   position: absolute;
   top: 0;
-  right: -6px;
+  right: -7px;
   bottom: 0;
-  width: 16px;
-  border-radius: 0 24px 24px 0;
+  width: 20px;
+  border-radius: 0 26px 26px 0;
   background: linear-gradient(
     to right,
     rgba(0, 0, 0, 0) 0,
-    rgba(0, 0, 0, 0.15) 40%,
-    rgba(255, 255, 255, 0.45) 100%
+    rgba(0, 0, 0, 0.18) 40%,
+    rgba(255, 255, 255, 0.5) 100%
   );
-  opacity: 0.75;
+  opacity: 0.78;
   pointer-events: none;
 }
 
@@ -670,7 +741,7 @@ a {
   margin-top: auto;
 }
 
-/* Старые классы flip-book — на всякий случай, вдруг где-то используются */
+/* Старые классы flip-book — на всякий случай */
 
 .flip-book {
   margin: 24px auto;
