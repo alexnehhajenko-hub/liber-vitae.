@@ -9,6 +9,7 @@ type BookLayoutProps = {
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const [current, setCurrent] = React.useState(0);
   const [isMobile, setIsMobile] = React.useState(false);
+  const touchStartX = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     const update = () => {
@@ -23,12 +24,32 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const canPrev = current > 0;
   const canNext = current < pages.length - 1;
 
-  const handlePrev = () => {
+  const goPrev = () => {
     if (canPrev) setCurrent((c) => c - 1);
   };
 
-  const handleNext = () => {
+  const goNext = () => {
     if (canNext) setCurrent((c) => c + 1);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartX.current == null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const threshold = 40; // сколько свайпнуть, чтобы перелистнуть
+
+    if (deltaX > threshold && canPrev) {
+      // свайп вправо → назад
+      setCurrent((c) => c - 1);
+    } else if (deltaX < -threshold && canNext) {
+      // свайп влево → вперёд
+      setCurrent((c) => c + 1);
+    }
+
+    touchStartX.current = null;
   };
 
   return (
@@ -38,6 +59,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           'lv-book-viewport ' +
           (isMobile ? 'lv-book-viewport--single' : 'lv-book-viewport--spread')
         }
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {isMobile ? (
           // Телефон: один лист
@@ -58,7 +81,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         <button
           type="button"
           className="lv-book-nav-btn"
-          onClick={handlePrev}
+          onClick={goPrev}
           disabled={!canPrev}
         >
           ← Назад
@@ -69,7 +92,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         <button
           type="button"
           className="lv-book-nav-btn"
-          onClick={handleNext}
+          onClick={goNext}
           disabled={!canNext}
         >
           Вперёд →
