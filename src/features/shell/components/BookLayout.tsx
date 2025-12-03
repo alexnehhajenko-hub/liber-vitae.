@@ -41,18 +41,14 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       >
         {isMobile ? (
           // Телефон: один лист
-          <div className="lv-book-page-wrapper">
-            {pages[current]}
-          </div>
+          <div className="lv-book-page-wrapper">{pages[current]}</div>
         ) : (
           // Планшет / десктоп: разворот
           <>
             <div className="lv-book-page-wrapper">
               {pages[current - 1] ?? <div style={{ visibility: 'hidden' }} />}
             </div>
-            <div className="lv-book-page-wrapper">
-              {pages[current]}
-            </div>
+            <div className="lv-book-page-wrapper">{pages[current]}</div>
             <div className="lv-book-spine" />
           </>
         )}
