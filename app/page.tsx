@@ -1,8 +1,11 @@
-// app/page.tsx
-
-import BookLayout from "../src/features/shell/components/BookLayout";
+import React from 'react';
+import { SiteLayout } from '@/features/shell/components/SiteLayout';
+import { HeroSection } from '@/features/shell/components/HeroSection';
 
 export default function HomePage() {
-  // Главная страница сайта = разворот книги
-  return <BookLayout />;
+  return (
+    <SiteLayout>
+      <HeroSection />
+    </SiteLayout>
+  );
 }
