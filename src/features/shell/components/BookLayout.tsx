@@ -1,99 +1,88 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 
 type BookLayoutProps = {
   pages: React.ReactNode[];
 };
 
+type FlipEvent = {
+  data: number; // индекс текущей страницы из библиотеки
+};
+
+// Динамический импорт, чтобы не ломать SSR
+const HTMLFlipBook = dynamic(
+  () => import('react-pageflip').then((mod: any) => mod.default),
+  { ssr: false }
+) as any;
+
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
+  const bookRef = React.useRef<any>(null);
   const [current, setCurrent] = React.useState(0);
-  const [isMobile, setIsMobile] = React.useState(false);
-  const touchStartX = React.useRef<number | null>(null);
 
-  React.useEffect(() => {
-    const update = () => {
-      if (typeof window === 'undefined') return;
-      setIsMobile(window.innerWidth < 768); // телефон
-    };
-    update();
-    window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
-  }, []);
+  const total = pages.length;
 
-  const canPrev = current > 0;
-  const canNext = current < pages.length - 1;
-
-  const goPrev = () => {
-    if (canPrev) setCurrent((c) => c - 1);
+  const handlePrev = () => {
+    if (!bookRef.current) return;
+    bookRef.current.pageFlip().flipPrev();
   };
 
-  const goNext = () => {
-    if (canNext) setCurrent((c) => c + 1);
+  const handleNext = () => {
+    if (!bookRef.current) return;
+    bookRef.current.pageFlip().flipNext();
   };
 
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (touchStartX.current == null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-    const threshold = 40; // сколько свайпнуть, чтобы перелистнуть
-
-    if (deltaX > threshold && canPrev) {
-      // свайп вправо → назад
-      setCurrent((c) => c - 1);
-    } else if (deltaX < -threshold && canNext) {
-      // свайп влево → вперёд
-      setCurrent((c) => c + 1);
-    }
-
-    touchStartX.current = null;
+  const handleFlip = (e: FlipEvent) => {
+    setCurrent(e.data);
   };
 
   return (
     <div className="lv-book-shell">
-      <div
-        className={
-          'lv-book-viewport ' +
-          (isMobile ? 'lv-book-viewport--single' : 'lv-book-viewport--spread')
-        }
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        {isMobile ? (
-          // Телефон: один лист
-          <div className="lv-book-page-wrapper">{pages[current]}</div>
-        ) : (
-          // Планшет / десктоп: разворот
-          <>
-            <div className="lv-book-page-wrapper">
-              {pages[current - 1] ?? <div style={{ visibility: 'hidden' }} />}
+      <div className="lv-book-flip-wrapper">
+        <HTMLFlipBook
+          width={420}
+          height={560}
+          size="stretch"
+          minWidth={300}
+          maxWidth={900}
+          minHeight={400}
+          maxHeight={900}
+          maxShadowOpacity={0.5}
+          showCover={false}
+          usePortrait={true} // на телефоне — одна страница, на широком — разворот
+          mobileScrollSupport={false}
+          className="lv-flip-book"
+          ref={bookRef}
+          onFlip={handleFlip}
+        >
+          {pages.map((page, index) => (
+            <div key={index} className="lv-flip-page">
+              {page}
             </div>
-            <div className="lv-book-page-wrapper">{pages[current]}</div>
-            <div className="lv-book-spine" />
-          </>
-        )}
+          ))}
+        </HTMLFlipBook>
       </div>
 
       <div className="lv-book-controls">
         <button
           type="button"
           className="lv-book-nav-btn"
-          onClick={goPrev}
-          disabled={!canPrev}
+          onClick={handlePrev}
+          disabled={current <= 0}
         >
           ← Назад
         </button>
+
         <span className="lv-book-counter">
-          Страница {current + 1} / {pages.length}
+          Страница {current + 1} / {total}
         </span>
+
         <button
           type="button"
           className="lv-book-nav-btn"
-          onClick={goNext}
-          disabled={!canNext}
+          onClick={handleNext}
+          disabled={current >= total - 1}
         >
           Вперёд →
         </button>
