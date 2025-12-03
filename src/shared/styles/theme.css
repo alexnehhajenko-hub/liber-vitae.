@@ -401,10 +401,10 @@ a {
 
 .lv-book-flip-wrapper {
   position: relative;
-  width: min(96vw, 620px);
-  filter: drop-shadow(0 30px 55px rgba(0, 0, 0, 0.9));
+  width: min(96vw, 640px);
+  filter: drop-shadow(0 32px 60px rgba(0, 0, 0, 0.95));
   transform-origin: center bottom;
-  transform: perspective(1800px) rotateX(10deg);
+  transform: perspective(1900px) rotateX(9deg);
 }
 
 @media (min-width: 900px) {
