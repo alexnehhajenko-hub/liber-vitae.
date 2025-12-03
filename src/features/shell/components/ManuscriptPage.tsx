@@ -18,7 +18,8 @@ export const ManuscriptPage: React.FC<ManuscriptPageProps> = ({
 
       <p className="lv-page-body">
         Aut viam inveniam aut faciam. Пусть эти строки будут написаны светом,
-        размышлениями и памятью — это след пера, оставленный на бумаге времени.
+        размышлениями и памятью — это след пера, оставленный на бумаге
+        времени.
       </p>
 
       <div className="lv-page-portrait-block">
