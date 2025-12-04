@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useCallback, useRef, useState } from "react";
-import dynamic from "next/dynamic";
+import React from 'react';
+import dynamic from 'next/dynamic';
 
 type BookLayoutProps = {
   pages: React.ReactNode[];
@@ -11,80 +11,56 @@ type FlipEvent = {
   data: number; // индекс текущей страницы из библиотеки
 };
 
-// --- Типы для API перелистывания ---
-
-type PageFlipApi = {
-  flipNext: () => void;
-  flipPrev: () => void;
-};
-
-type FlipRef = {
-  pageFlip?: () => PageFlipApi;
-};
-
-// --- Динамический импорт + forwardRef, чтобы ref работал ---
-
-const RawHTMLFlipBook = dynamic(
-  () => import("react-pageflip").then((mod: any) => mod.default),
+// Динамический импорт, чтобы не ломать SSR
+const HTMLFlipBook = dynamic(
+  () => import('react-pageflip').then((mod: any) => mod.default),
   { ssr: false }
 ) as any;
 
-const HTMLFlipBook = React.forwardRef<FlipRef, any>((props, ref) => {
-  return <RawHTMLFlipBook ref={ref} {...props} />;
-});
-
-HTMLFlipBook.displayName = "HTMLFlipBook";
-
-// --- Основной компонент книги ---
-
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
-  const bookRef = useRef<FlipRef | null>(null);
-  const [current, setCurrent] = useState(0);
+  const bookRef = React.useRef<any>(null);
+  const [current, setCurrent] = React.useState(0);
 
   const total = pages.length;
 
-  const handleFlip = useCallback((e: FlipEvent) => {
-    setCurrent(e.data ?? 0);
-  }, []);
-
-  const getApi = (): PageFlipApi | null => {
-    return bookRef.current?.pageFlip ? bookRef.current.pageFlip() : null;
-  };
-
   const handlePrev = () => {
-    const api = getApi();
-    api?.flipPrev();
+    if (!bookRef.current) return;
+    bookRef.current.pageFlip().flipPrev();
   };
 
   const handleNext = () => {
-    const api = getApi();
-    api?.flipNext();
+    if (!bookRef.current) return;
+    bookRef.current.pageFlip().flipNext();
+  };
+
+  const handleFlip = (e: FlipEvent) => {
+    setCurrent(e.data);
   };
 
   return (
     <div className="lv-book-shell">
       <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
-          // делаем базовый размер страницы крупнее и чуть «вытянутым»
-          width={520}
-          height={720}
+          // ДЕЛАЕМ КНИГУ КРУПНЕЕ
+          width={620}
+          height={820}
           size="stretch"
-          minWidth={320}
-          maxWidth={900}
-          minHeight={480}
-          maxHeight={1100}
-          maxShadowOpacity={0.7}
+          minWidth={360}
+          maxWidth={1000}
+          minHeight={540}
+          maxHeight={1200}
+          maxShadowOpacity={0.85}
           showCover={false}
-          usePortrait
+          usePortrait={true} // на телефоне одна страница, на широком — разворот
           mobileScrollSupport={false}
           className="lv-flip-book"
           ref={bookRef}
           onFlip={handleFlip}
         >
           {pages.map((page, index) => (
-            <article key={index} className="lv-flip-page">
+            <div key={index} className="lv-flip-page">
               {page}
-            </article>
+            </div>
           ))}
         </HTMLFlipBook>
       </div>
@@ -115,5 +91,3 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     </div>
   );
 };
-
-export default BookLayout;
