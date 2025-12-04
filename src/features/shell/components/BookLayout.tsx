@@ -35,9 +35,9 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
     const currentIndex = api.getCurrentPageIndex();
     if (currentIndex <= 0) {
-      api.flip(total - 1, 'bottom');
+      api.flip(total - 1, 'left'); // листаем с левого края
     } else {
-      api.flipPrev('bottom');
+      api.flipPrev('left');
     }
   };
 
@@ -50,9 +50,9 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     const lastIndex = total - 1;
 
     if (currentIndex >= lastIndex) {
-      api.flip(0, 'bottom');
+      api.flip(0, 'right'); // листаем с правого края
     } else {
-      api.flipNext('bottom');
+      api.flipNext('right');
     }
   };
 
@@ -64,14 +64,14 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     <div className="lv-book-shell">
       <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
-          // делаем книгу крупнее и выше
-          width={620}
-          height={880}
+          // делаем книгу более высокой и крупной
+          width={660}
+          height={1020}
           size="stretch"
           minWidth={360}
           maxWidth={1000}
           minHeight={520}
-          maxHeight={1200}
+          maxHeight={1300}
           maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true}        // на телефоне – одна страница
@@ -86,6 +86,20 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
             </div>
           ))}
         </HTMLFlipBook>
+
+        {/* "Горячие зоны" на самой книге для перелистывания свайпом/тапом */}
+        <button
+          type="button"
+          className="lv-book-hotspot lv-book-hotspot--left"
+          onClick={handlePrev}
+          aria-label="Листать назад"
+        />
+        <button
+          type="button"
+          className="lv-book-hotspot lv-book-hotspot--right"
+          onClick={handleNext}
+          aria-label="Листать вперёд"
+        />
       </div>
 
       <div className="lv-book-controls">
