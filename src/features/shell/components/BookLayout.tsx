@@ -23,22 +23,21 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
   const total = pages.length;
 
+  const getApi = () => {
+    if (!bookRef.current) return null;
+    return bookRef.current.pageFlip?.();
+  };
+
   const handlePrev = () => {
-    if (!bookRef.current) return;
-
-    const api = bookRef.current.pageFlip?.();
+    const api = getApi();
     if (!api) return;
-
-    api.flipPrev(); // листаем НАЗАД
+    api.flipPrev();
   };
 
   const handleNext = () => {
-    if (!bookRef.current) return;
-
-    const api = bookRef.current.pageFlip?.();
+    const api = getApi();
     if (!api) return;
-
-    api.flipNext(); // листаем ВПЕРЁД
+    api.flipNext();
   };
 
   const handleFlip = (e: FlipEvent) => {
@@ -47,20 +46,26 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
   return (
     <div className="lv-book-shell">
-      <div className="lv-book-flip-wrapper">
+      <div
+        className="lv-book-flip-wrapper"
+        // маленький лайфхак: блокируем всплытие свайпов,
+        // чтобы браузер меньше цеплял жест "Назад" от края
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchMove={(e) => e.stopPropagation()}
+      >
         <HTMLFlipBook
-          // базовый размер книги (дальше она подстраивается под ширину контейнера)
-          width={520}
-          height={780}
+          // ДЕЛАЕМ КНИГУ ЧУТЬ УЖЕ, чтобы влезала в любой iPhone
+          width={380}
+          height={760}
           size="stretch"
-          minWidth={320}
+          minWidth={300}
           maxWidth={900}
           minHeight={480}
           maxHeight={1200}
           maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true}          // на телефоне одна страница
-          mobileScrollSupport={true}  // вертикальный скролл страницы остаётся
+          mobileScrollSupport={true}  // вертикальный скролл остаётся
           className="lv-flip-book"
           ref={bookRef}
           onFlip={handleFlip}
@@ -72,7 +77,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           ))}
         </HTMLFlipBook>
 
-        {/* Невидимые «горячие зоны» по краям книги */}
+        {/* Невидимые кликабельные зоны по краям книги */}
         <button
           type="button"
           className="lv-book-hotspot lv-book-hotspot--left"
