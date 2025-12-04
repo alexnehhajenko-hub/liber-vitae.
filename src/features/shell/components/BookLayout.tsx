@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 
 type BookLayoutProps = {
@@ -11,26 +11,49 @@ type FlipEvent = {
   data: number; // индекс текущей страницы из библиотеки
 };
 
-// Динамический импорт, чтобы не ломать SSR
+// Динамический импорт – чтобы всё работало в Next.js без SSR
 const HTMLFlipBook = dynamic(
   () => import('react-pageflip').then((mod: any) => mod.default),
   { ssr: false }
 ) as any;
 
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
-  const bookRef = React.useRef<any>(null);
-  const [current, setCurrent] = React.useState(0);
-
+  const bookRef = useRef<any>(null);
+  const [current, setCurrent] = useState(0);
   const total = pages.length;
 
-  const handlePrev = () => {
-    if (!bookRef.current) return;
-    bookRef.current.pageFlip().flipPrev();
+  const safePageFlip = () => {
+    if (!bookRef.current) return null;
+    const api = bookRef.current.pageFlip?.();
+    return api ?? null;
   };
 
+  // Назад: если мы на первой – прыгаем на последнюю
+  const handlePrev = () => {
+    const api = safePageFlip();
+    if (!api || total === 0) return;
+
+    const currentIndex = api.getCurrentPageIndex();
+    if (currentIndex <= 0) {
+      api.flip(total - 1, 'bottom');
+    } else {
+      api.flipPrev('bottom');
+    }
+  };
+
+  // Вперёд: если мы на последней – прыгаем на первую
   const handleNext = () => {
-    if (!bookRef.current) return;
-    bookRef.current.pageFlip().flipNext();
+    const api = safePageFlip();
+    if (!api || total === 0) return;
+
+    const currentIndex = api.getCurrentPageIndex();
+    const lastIndex = total - 1;
+
+    if (currentIndex >= lastIndex) {
+      api.flip(0, 'bottom');
+    } else {
+      api.flipNext('bottom');
+    }
   };
 
   const handleFlip = (e: FlipEvent) => {
@@ -41,17 +64,17 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     <div className="lv-book-shell">
       <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
-          // ДЕЛАЕМ КНИГУ КРУПНЕЕ
+          // делаем книгу крупнее и выше
           width={620}
-          height={820}
+          height={880}
           size="stretch"
           minWidth={360}
           maxWidth={1000}
-          minHeight={540}
+          minHeight={520}
           maxHeight={1200}
-          maxShadowOpacity={0.85}
+          maxShadowOpacity={0.7}
           showCover={false}
-          usePortrait={true} // на телефоне одна страница, на широком — разворот
+          usePortrait={true}        // на телефоне – одна страница
           mobileScrollSupport={false}
           className="lv-flip-book"
           ref={bookRef}
@@ -70,7 +93,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           type="button"
           className="lv-book-nav-btn"
           onClick={handlePrev}
-          disabled={current <= 0}
         >
           ← Назад
         </button>
@@ -83,7 +105,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           type="button"
           className="lv-book-nav-btn"
           onClick={handleNext}
-          disabled={current >= total - 1}
         >
           Вперёд →
         </button>
