@@ -29,7 +29,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     const api = bookRef.current.pageFlip?.();
     if (!api) return;
 
-    api.flipPrev(); // НАЗАД – как раньше, без «прыжков»
+    api.flipPrev(); // листаем НАЗАД
   };
 
   const handleNext = () => {
@@ -38,7 +38,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     const api = bookRef.current.pageFlip?.();
     if (!api) return;
 
-    api.flipNext(); // ВПЕРЁД – как раньше, без «зацикливания»
+    api.flipNext(); // листаем ВПЕРЁД
   };
 
   const handleFlip = (e: FlipEvent) => {
@@ -49,18 +49,18 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     <div className="lv-book-shell">
       <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
-          // делаем книгу более высокой и крупной
-          width={660}
-          height={1020}
+          // базовый размер книги (дальше она подстраивается под ширину контейнера)
+          width={520}
+          height={780}
           size="stretch"
-          minWidth={360}
-          maxWidth={1000}
-          minHeight={520}
-          maxHeight={1300}
+          minWidth={320}
+          maxWidth={900}
+          minHeight={480}
+          maxHeight={1200}
           maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true}          // на телефоне одна страница
-          mobileScrollSupport={false}
+          mobileScrollSupport={true}  // вертикальный скролл страницы остаётся
           className="lv-flip-book"
           ref={bookRef}
           onFlip={handleFlip}
