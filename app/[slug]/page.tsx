@@ -101,7 +101,10 @@ export default function DynamicPage({ params }: PageProps) {
 
     return (
       <SiteLayout>
-        <BookLayout pages={pages} />
+        {/* Поднимаем всю книгу вверх примерно на 15 мм */}
+        <div style={{ marginTop: '-15mm' }}>
+          <BookLayout pages={pages} />
+        </div>
       </SiteLayout>
     );
   }
