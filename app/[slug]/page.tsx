@@ -40,7 +40,11 @@ export default function DynamicPage({ params }: PageProps) {
           <div className="lv-page-title">Истоки</div>
         </div>
 
-        <div className="lv-page-body">
+        {/* ВОПРОС — делаем шрифт чуть крупнее */}
+        <div
+          className="lv-page-body"
+          style={{ fontSize: '1.06rem', lineHeight: 1.5 }}
+        >
           Когда вы в последний раз чувствовали, что живёте именно так,
           как хотите? Что происходило вокруг и почему этот момент важен
           для вас?
@@ -48,11 +52,37 @@ export default function DynamicPage({ params }: PageProps) {
 
         <div className="lv-page-answer">
           <div className="lv-page-answer-label">Ваш ответ</div>
-          <textarea
-            className="lv-page-answer-input"
-            placeholder="Напишите здесь свой ответ. Не спешите, у вас есть время."
-            rows={8}
-          />
+
+          {/* РАМКА ДЛЯ ОТВЕТА — длинная, фигурная, цвет страницы */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: '8px',
+              marginBottom: '8px',
+            }}
+          >
+            <textarea
+              className="lv-page-answer-input"
+              placeholder="Напишите здесь свой ответ. Не спешите, у вас есть время."
+              rows={5}
+              style={{
+                width: '92%', // почти на весь разворот
+                minHeight: '140px',
+                borderRadius: '20px', // более фигурная форма
+                border: '1px solid rgba(0,0,0,0.28)',
+                boxShadow:
+                  '0 10px 24px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.14)',
+                background: 'transparent', // цвет страницы, без белого квадрата
+                padding: '12px 18px',
+                resize: 'vertical',
+                fontSize: '0.96rem',
+                lineHeight: 1.4,
+                color: 'inherit',
+              }}
+            />
+          </div>
+
           <div className="lv-page-answer-hint">
             Позже здесь появится автосохранение и связь этого ответа с вашим портретом.
           </div>
@@ -68,18 +98,48 @@ export default function DynamicPage({ params }: PageProps) {
           <div className="lv-page-title">Выбор</div>
         </div>
 
-        <div className="lv-page-body">
+        {/* ВОПРОС — тоже чуть крупнее */}
+        <div
+          className="lv-page-body"
+          style={{ fontSize: '1.06rem', lineHeight: 1.5 }}
+        >
           Какое решение в вашей жизни вы считаете самым смелым?
           Что вы тогда поставили на карту и чему это вас научило?
         </div>
 
         <div className="lv-page-answer">
           <div className="lv-page-answer-label">Ваш ответ</div>
-          <textarea
-            className="lv-page-answer-input"
-            placeholder="Опишите тот выбор, который до сих пор чувствуете как поворотный."
-            rows={8}
-          />
+
+          {/* Та же длинная рамка для ответа */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: '8px',
+              marginBottom: '8px',
+            }}
+          >
+            <textarea
+              className="lv-page-answer-input"
+              placeholder="Опишите тот выбор, который до сих пор чувствуете как поворотный."
+              rows={5}
+              style={{
+                width: '92%',
+                minHeight: '140px',
+                borderRadius: '20px',
+                border: '1px solid rgba(0,0,0,0.28)',
+                boxShadow:
+                  '0 10px 24px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.14)',
+                background: 'transparent',
+                padding: '12px 18px',
+                resize: 'vertical',
+                fontSize: '0.96rem',
+                lineHeight: 1.4,
+                color: 'inherit',
+              }}
+            />
+          </div>
+
           <div className="lv-page-answer-hint">
             Здесь будет второй ответ. Сейчас это макет, чтобы проверить формат страницы.
           </div>
@@ -176,7 +236,7 @@ export default function DynamicPage({ params }: PageProps) {
             вам тесно в старых решениях, но страшно делать новые.
           </p>
           <p>
-            Важно, что речь будет не о &laquo;проблемах&raquo;, а о живых
+            Важно, что речь будет не о «проблемах», а о живых
             противоречиях, которые есть у каждого человека. Текст поможет
             увидеть их яснее и относиться к ним бережнее.
           </p>
