@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import dynamic from 'next/dynamic';
 
 type BookLayoutProps = {
@@ -11,60 +11,83 @@ type FlipEvent = {
   data: number; // индекс текущей страницы
 };
 
-// Динамический импорт, чтобы не ломать SSR в Next.js
+// Динамический импорт, чтобы не ломать SSR
 const HTMLFlipBook = dynamic(
   () => import('react-pageflip').then((mod: any) => mod.default),
   { ssr: false }
 ) as any;
 
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
-  const bookRef = useRef<any>(null);
-  const [current, setCurrent] = useState(0);
+  const bookRef = React.useRef<any>(null);
+  const [current, setCurrent] = React.useState(0);
 
   const total = pages.length;
 
-  const getApi = () => {
-    if (!bookRef.current) return null;
-    return bookRef.current.pageFlip?.();
-  };
-
   const handlePrev = () => {
-    const api = getApi();
-    if (!api) return;
-    api.flipPrev();
+    if (!bookRef.current) return;
+    bookRef.current.pageFlip().flipPrev();
   };
 
   const handleNext = () => {
-    const api = getApi();
-    if (!api) return;
-    api.flipNext();
+    if (!bookRef.current) return;
+    bookRef.current.pageFlip().flipNext();
   };
 
   const handleFlip = (e: FlipEvent) => {
     setCurrent(e.data);
   };
 
+  // Блокировка горизонтального скролла страницы во время свайпа по книге
+  const lockHorizontalSwipe = React.useCallback((lock: boolean) => {
+    if (typeof document === 'undefined') return;
+    const body = document.body;
+
+    if (lock) {
+      // Разрешаем только вертикальную прокрутку
+      (body.style as any).overscrollBehaviorX = 'none';
+      (body.style as any).touchAction = 'pan-y';
+    } else {
+      (body.style as any).overscrollBehaviorX = '';
+      (body.style as any).touchAction = '';
+    }
+  }, []);
+
+  const handleTouchStart = () => {
+    lockHorizontalSwipe(true);
+  };
+
+  const handleTouchEnd = () => {
+    lockHorizontalSwipe(false);
+  };
+
+  React.useEffect(() => {
+    // На случай размонтирования компонента
+    return () => {
+      lockHorizontalSwipe(false);
+    };
+  }, [lockHorizontalSwipe]);
+
   return (
-    <div className="lv-book-shell">
-      <div
-        className="lv-book-flip-wrapper"
-        // Блокируем всплытие, чтобы уменьшить шанс срабатывания жеста "Назад"
-        onTouchStart={(e) => e.stopPropagation()}
-        onTouchMove={(e) => e.stopPropagation()}
-      >
+    <div
+      className="lv-book-shell"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+    >
+      <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
-          // Чуть уже и повыше: удобнее для вертикального центрирования
-          width={360}
-          height={760}
+          // Чуть более компактный, чтобы книга полностью была видна по высоте
+          width={480}
+          height={640}
           size="stretch"
-          minWidth={300}
+          minWidth={320}
           maxWidth={900}
           minHeight={480}
-          maxHeight={1200}
+          maxHeight={1000}
           maxShadowOpacity={0.7}
           showCover={false}
-          usePortrait={true}
-          mobileScrollSupport={true}
+          usePortrait={true} // на телефоне одна страница, на широком — разворот
+          mobileScrollSupport={false}
           className="lv-flip-book"
           ref={bookRef}
           onFlip={handleFlip}
@@ -75,20 +98,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
             </div>
           ))}
         </HTMLFlipBook>
-
-        {/* Невидимые кликабельные зоны по краям КНИГИ, а не экрана */}
-        <button
-          type="button"
-          className="lv-book-hotspot lv-book-hotspot--left"
-          onClick={handlePrev}
-          aria-label="Листать назад"
-        />
-        <button
-          type="button"
-          className="lv-book-hotspot lv-book-hotspot--right"
-          onClick={handleNext}
-          aria-label="Листать вперёд"
-        />
       </div>
 
       <div className="lv-book-controls">
