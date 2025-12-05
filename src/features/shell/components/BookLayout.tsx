@@ -23,6 +23,9 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
   const total = pages.length;
 
+  const touchStartX = React.useRef(0);
+  const touchStartY = React.useRef(0);
+
   const handlePrev = () => {
     if (!bookRef.current) return;
     bookRef.current.pageFlip().flipPrev();
@@ -43,7 +46,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     const body = document.body;
 
     if (lock) {
-      // Разрешаем только вертикальную прокрутку
       (body.style as any).overscrollBehaviorX = 'none';
       (body.style as any).touchAction = 'pan-y';
     } else {
@@ -52,8 +54,22 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     }
   }, []);
 
-  const handleTouchStart = () => {
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
     lockHorizontalSwipe(true);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - touchStartX.current);
+    const dy = Math.abs(touch.clientY - touchStartY.current);
+
+    // Если жест в основном горизонтальный — запрещаем действие браузера
+    if (dx > dy) {
+      e.preventDefault(); // Safari не должен листать историю, но flipbook всё равно получит события
+    }
   };
 
   const handleTouchEnd = () => {
@@ -71,12 +87,12 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     <div
       className="lv-book-shell"
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
     >
       <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
-          // Чуть более компактный, чтобы книга полностью была видна по высоте
           width={480}
           height={640}
           size="stretch"
@@ -86,7 +102,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           maxHeight={1000}
           maxShadowOpacity={0.7}
           showCover={false}
-          usePortrait={true} // на телефоне одна страница, на широком — разворот
+          usePortrait={true}
           mobileScrollSupport={false}
           className="lv-flip-book"
           ref={bookRef}
