@@ -107,6 +107,7 @@ export default function DynamicPage({ params }: PageProps) {
         </div>
       </SiteLayout>
     );
+
   }
 
   // ---------- Все остальные страницы: статичный разворот ----------
