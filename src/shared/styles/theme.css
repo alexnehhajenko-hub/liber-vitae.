@@ -34,7 +34,7 @@ body {
   color: var(--color-text-on-dark);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden; /* чтобы книга не выезжала за экран */
+  overflow-x: hidden;
 }
 
 a {
@@ -89,7 +89,7 @@ a {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 16px;
+  padding: 8px 16px 24px;
 }
 
 .lv-site-main-inner {
@@ -391,8 +391,9 @@ a {
    ========================================================= */
 
 .lv-book-shell {
+  min-height: calc(100vh - 120px); /* центрируем по высоте, минус шапка */
   margin: 0 auto;
-  padding: 12px 0 28px;
+  padding: 0 0 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -402,17 +403,17 @@ a {
 
 .lv-book-flip-wrapper {
   position: relative;
-  width: min(100vw - 32px, 420px); /* по центру и есть зазор от краёв */
+  width: min(100vw - 40px, 420px); /* есть отступ от краёв экрана */
   margin: 0 auto;
   filter: drop-shadow(0 32px 60px rgba(0, 0, 0, 0.95));
   transform-origin: center bottom;
-  transform: perspective(1900px) rotateX(8deg);
+  transform: perspective(1900px) rotateX(6deg);
 }
 
 @media (min-width: 900px) {
   .lv-book-flip-wrapper {
-    width: min(100vw - 160px, 820px);
-    transform: perspective(2100px) rotateX(7deg);
+    width: min(100vw - 200px, 820px);
+    transform: perspective(2100px) rotateX(5deg);
   }
 }
 
@@ -653,13 +654,14 @@ a {
   color: rgba(246, 240, 233, 0.85);
 }
 
-/* Невидимые кликабельные зоны по краям книги */
+/* Невидимые кликабельные зоны по краям книги.
+   Отступаем 10% от края, чтобы не трогать самый край экрана. */
 
 .lv-book-hotspot {
   position: absolute;
-  top: 8%;
-  bottom: 8%;
-  width: 22%;
+  top: 10%;
+  bottom: 10%;
+  width: 30%;
   background: transparent;
   border: none;
   padding: 0;
@@ -668,11 +670,11 @@ a {
 }
 
 .lv-book-hotspot--left {
-  left: 0;
+  left: 10%;
 }
 
 .lv-book-hotspot--right {
-  right: 0;
+  right: 10%;
 }
 
 /* Чуть увеличиваем текст и масштаб страницы на мобильных */
@@ -687,8 +689,8 @@ a {
   }
 
   .lv-book-flip-wrapper {
-    width: min(100vw - 32px, 420px);
-    transform: perspective(1700px) rotateX(6deg);
+    width: min(100vw - 40px, 420px);
+    transform: perspective(1700px) rotateX(5deg);
   }
 }
 
