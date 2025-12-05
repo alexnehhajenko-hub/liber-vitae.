@@ -89,7 +89,7 @@ a {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 8px 16px 8px; /* меньше отступ снизу, чтобы книга была выше */
+  padding: 0 16px 0; /* меньше отступов, книга выше */
 }
 
 .lv-site-main-inner {
@@ -391,8 +391,8 @@ a {
    ========================================================= */
 
 .lv-book-shell {
-  margin: 0 auto;
-  padding: 8px 0 4px; /* меньше пустоты снизу */
+  margin: -24px auto 0; /* поднимаем книгу вверх примерно на "сантиметр" */
+  padding: 4px 0 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -608,7 +608,8 @@ a {
 /* Панель управления страницами */
 
 .lv-book-controls {
-  margin-top: 10px;
+  margin-top: 6px;
+  margin-bottom: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
