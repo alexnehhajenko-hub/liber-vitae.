@@ -34,7 +34,7 @@ body {
   color: var(--color-text-on-dark);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overscroll-behavior-x: none; /* уменьшаем случайные горизонтальные свайпы */
 }
 
 a {
@@ -89,7 +89,7 @@ a {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 8px 16px 24px;
+  padding: 8px 16px 8px; /* меньше отступ снизу, чтобы книга была выше */
 }
 
 .lv-site-main-inner {
@@ -391,9 +391,8 @@ a {
    ========================================================= */
 
 .lv-book-shell {
-  min-height: calc(100vh - 120px); /* центрируем по высоте, минус шапка */
   margin: 0 auto;
-  padding: 0 0 24px;
+  padding: 8px 0 4px; /* меньше пустоты снизу */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -403,17 +402,16 @@ a {
 
 .lv-book-flip-wrapper {
   position: relative;
-  width: min(100vw - 40px, 420px); /* есть отступ от краёв экрана */
-  margin: 0 auto;
+  width: min(94vw, 720px);
   filter: drop-shadow(0 32px 60px rgba(0, 0, 0, 0.95));
   transform-origin: center bottom;
-  transform: perspective(1900px) rotateX(6deg);
+  transform: perspective(1900px) rotateX(7deg);
 }
 
 @media (min-width: 900px) {
   .lv-book-flip-wrapper {
-    width: min(100vw - 200px, 820px);
-    transform: perspective(2100px) rotateX(5deg);
+    width: min(72vw, 820px);
+    transform: perspective(2100px) rotateX(6deg);
   }
 }
 
@@ -422,7 +420,7 @@ a {
 .lv-book-flip-wrapper::before {
   content: "";
   position: absolute;
-  left: -26px;
+  left: -24px;
   top: 10%;
   bottom: 10%;
   width: 40px;
@@ -447,10 +445,10 @@ a {
 .lv-book-flip-wrapper::after {
   content: "";
   position: absolute;
-  right: -22px;
+  right: -18px;
   top: 8%;
   bottom: 8%;
-  width: 26px;
+  width: 24px;
   border-radius: 0 20px 20px 0;
   background:
     repeating-linear-gradient(
@@ -470,14 +468,14 @@ a {
 
 .lv-flip-book {
   position: relative;
-  margin: 24px auto;
+  margin: 12px auto;
   border-radius: 26px;
   overflow: visible;
   touch-action: pan-y;
   z-index: 1;
 }
 
-/* внутренние страницы flipbook — старая бумага */
+/* внутренняя страница flipbook — старая бумага */
 
 .lv-flip-page {
   position: relative;
@@ -493,10 +491,10 @@ a {
     ),
     repeating-linear-gradient(
       to bottom,
-      rgba(0, 0, 0, 0.04) 0,
-      rgba(0, 0, 0, 0.04) 1px,
-      transparent 3px,
-      transparent 5px
+      rgba(0, 0, 0, 0.08) 0,
+      rgba(0, 0, 0, 0.08) 1px,
+      transparent 2px,
+      transparent 4px
     ),
     radial-gradient(circle at 20% 0%, #fff3d9 0, #f0d1a0 42%, #ddb781 100%);
   box-shadow:
@@ -504,7 +502,7 @@ a {
     0 0 0 1px rgba(120, 96, 62, 0.4);
 }
 
-/* загнутый правый край */
+/* подогнутый правый край */
 
 .lv-flip-page::after {
   content: "";
@@ -610,7 +608,7 @@ a {
 /* Панель управления страницами */
 
 .lv-book-controls {
-  margin-top: 18px;
+  margin-top: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -654,30 +652,7 @@ a {
   color: rgba(246, 240, 233, 0.85);
 }
 
-/* Невидимые кликабельные зоны по краям книги.
-   Отступаем 10% от края, чтобы не трогать самый край экрана. */
-
-.lv-book-hotspot {
-  position: absolute;
-  top: 10%;
-  bottom: 10%;
-  width: 30%;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  z-index: 5;
-}
-
-.lv-book-hotspot--left {
-  left: 10%;
-}
-
-.lv-book-hotspot--right {
-  right: 10%;
-}
-
-/* Чуть увеличиваем текст и масштаб страницы на мобильных */
+/* Чуть увеличиваем текст и «масштаб» страницы на мобильных */
 
 @media (max-width: 600px) {
   .lv-page-title {
@@ -689,8 +664,8 @@ a {
   }
 
   .lv-book-flip-wrapper {
-    width: min(100vw - 40px, 420px);
-    transform: perspective(1700px) rotateX(5deg);
+    width: 96vw;
+    transform: perspective(1700px) rotateX(6deg);
   }
 }
 
