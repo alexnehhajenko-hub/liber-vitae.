@@ -101,13 +101,17 @@ export default function DynamicPage({ params }: PageProps) {
 
     return (
       <SiteLayout>
-        {/* Поднимаем всю книгу вверх примерно на 15 мм */}
-        <div style={{ marginTop: '-15mm' }}>
+        {/* Вытягиваем книгу вверх: масштабируем от низа */}
+        <div
+          style={{
+            transform: 'scale(1.08)',        // немного увеличили книгу (≈ +8%)
+            transformOrigin: 'bottom center', // «растёт» вверх от нижнего края
+          }}
+        >
           <BookLayout pages={pages} />
         </div>
       </SiteLayout>
     );
-
   }
 
   // ---------- Все остальные страницы: статичный разворот ----------
