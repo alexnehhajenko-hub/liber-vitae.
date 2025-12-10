@@ -14,11 +14,11 @@ export default function DynamicPage({ params }: PageProps) {
   const rawSlug = params.slug ?? '';
   const slug = decodeURIComponent(rawSlug);
 
-  // ответы (пока только локально)
+  // ---- ответы (локально, без сервера пока) ----
   const [answer1, setAnswer1] = useState('');
   const [answer2, setAnswer2] = useState('');
 
-  // голосовой ввод
+  // ---- голосовой ввод ----
   const [recognition, setRecognition] = useState<any | null>(null);
   const [isListening, setIsListening] = useState(false);
 
@@ -40,11 +40,11 @@ export default function DynamicPage({ params }: PageProps) {
   }, []);
 
   const startDictation = (
-    setText: React.Dispatch<React.SetStateAction<string>>
+    setter: React.Dispatch<React.SetStateAction<string>>
   ) => {
     if (!recognition) {
       alert(
-        'К сожалению, ваш браузер сейчас не поддерживает голосовой ввод. Можно печатать с клавиатуры.'
+        'Ваш браузер не даёт запустить голосовой ввод. Можно спокойно печатать с клавиатуры.'
       );
       return;
     }
@@ -52,7 +52,7 @@ export default function DynamicPage({ params }: PageProps) {
     try {
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript as string;
-        setText((prev) =>
+        setter((prev) =>
           prev
             ? prev + (prev.endsWith(' ') ? '' : ' ') + transcript
             : transcript
@@ -70,17 +70,17 @@ export default function DynamicPage({ params }: PageProps) {
       setIsListening(true);
       recognition.start();
     } catch (e) {
-      setIsListening(false);
       console.error(e);
+      setIsListening(false);
     }
   };
 
-  // чтобы тап по полю не запускал перелистывание
+  // чтобы тап по полю не воспринимался как перелистывание
   const stopFlip = (e: React.SyntheticEvent) => {
     e.stopPropagation();
   };
 
-  // базовый стиль страницы: футер всегда внизу
+  // базовый стиль страницы — футер всегда внизу
   const pageBaseStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
@@ -88,10 +88,10 @@ export default function DynamicPage({ params }: PageProps) {
     height: '100%',
   };
 
-  // ---------- /book ----------
+  // ---------- /book: живая книга ----------
   if (slug === 'book') {
     const pages: React.ReactNode[] = [
-      // ===== стр. 1: обложка =====
+      // ===== Страница 1: обложка =====
       <div className="lv-page" key="page-1" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
@@ -109,7 +109,7 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-page-footer">СТР. 1 · ВВЕДЕНИЕ</div>
       </div>,
 
-      // ===== стр. 2: вопрос 1 =====
+      // ===== Страница 2: Вопрос I =====
       <div className="lv-page" key="page-2" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
@@ -126,16 +126,13 @@ export default function DynamicPage({ params }: PageProps) {
             для вас?
           </div>
 
-          <div
-            className="lv-page-answer"
-            style={{ marginBottom: 18 }}
-          >
+          <div className="lv-page-answer" style={{ marginBottom: 18 }}>
             <div className="lv-page-answer-label">Ваш ответ</div>
             <div
               className="lv-page-answer-hint"
               style={{ marginTop: 4, fontSize: '0.8rem' }}
             >
-              Можно напечатать или нажать 🎙 и наговорить.
+              Можно напечатать с клавиатуры или нажать 🎙 и наговорить.
             </div>
 
             <div
@@ -210,7 +207,7 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-page-footer">СТР. 2 · ВОПРОС I</div>
       </div>,
 
-      // ===== стр. 3: вопрос 2 =====
+      // ===== Страница 3: Вопрос II =====
       <div className="lv-page" key="page-3" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
@@ -226,10 +223,7 @@ export default function DynamicPage({ params }: PageProps) {
             Что вы тогда поставили на карту и чему это вас научило?
           </div>
 
-          <div
-            className="lv-page-answer"
-            style={{ marginBottom: 18 }}
-          >
+          <div className="lv-page-answer" style={{ marginBottom: 18 }}>
             <div className="lv-page-answer-label">Ваш ответ</div>
             <div
               className="lv-page-answer-hint"
@@ -310,7 +304,7 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-page-footer">СТР. 3 · ВОПРОС II</div>
       </div>,
 
-      // ===== стр. 4: портрет (как был) =====
+      // ===== Страница 4: Портрет =====
       <div className="lv-page" key="page-4" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
@@ -340,7 +334,7 @@ export default function DynamicPage({ params }: PageProps) {
     );
   }
 
-  // ---------- всё остальное: статичный разворот ----------
+  // ---------- остальные динамические страницы ----------
   return (
     <SiteLayout>
       <div className="lv-book-layout">
