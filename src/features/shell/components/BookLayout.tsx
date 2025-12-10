@@ -25,6 +25,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
   const touchStartX = React.useRef(0);
   const touchStartY = React.useRef(0);
+  const swipeLocked = React.useRef(false);
 
   const handlePrev = () => {
     if (!bookRef.current) return;
@@ -56,23 +57,37 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
+
+    // Если тач начался на интерактивном элементе — НЕ блокируем свайпы,
+    // даём iOS нормально открыть клавиатуру / нажать кнопку.
+    const target = e.target as HTMLElement;
+    if (target.closest('textarea, input, button, [data-no-swipe]')) {
+      swipeLocked.current = false;
+      return;
+    }
+
     touchStartX.current = touch.clientX;
     touchStartY.current = touch.clientY;
+    swipeLocked.current = true;
     lockHorizontalSwipe(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!swipeLocked.current) return;
+
     const touch = e.touches[0];
     const dx = Math.abs(touch.clientX - touchStartX.current);
     const dy = Math.abs(touch.clientY - touchStartY.current);
 
     // Если жест в основном горизонтальный — запрещаем действие браузера
     if (dx > dy) {
-      e.preventDefault(); // Safari не должен листать историю, но flipbook всё равно получит события
+      e.preventDefault(); // Safari не листает историю, а flipbook получает события
     }
   };
 
   const handleTouchEnd = () => {
+    if (!swipeLocked.current) return;
+    swipeLocked.current = false;
     lockHorizontalSwipe(false);
   };
 
