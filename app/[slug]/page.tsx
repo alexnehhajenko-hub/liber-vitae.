@@ -52,7 +52,7 @@ export default function DynamicPage({ params }: PageProps) {
     try {
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript as string;
-        setText(prev =>
+        setText((prev) =>
           prev
             ? prev + (prev.endsWith(' ') ? '' : ' ') + transcript
             : transcript
@@ -84,7 +84,11 @@ export default function DynamicPage({ params }: PageProps) {
   if (slug === 'book') {
     const pages: React.ReactNode[] = [
       // ===== Стр. 1 · Введение =====
-      <div className="lv-page" key="page-1">
+      <div
+        className="lv-page"
+        key="page-1"
+        style={{ backgroundImage: 'none' }}
+      >
         <div className="lv-page-header">
           <div className="lv-page-subtitle">LIBER VITAE</div>
           <div className="lv-page-title">Книга жизни</div>
@@ -96,18 +100,20 @@ export default function DynamicPage({ params }: PageProps) {
           Перелистайте страницу, чтобы начать.
         </div>
 
-        {/* Внизу только надпись страницы, с запасом пустого места */}
         <div className="lv-page-footer">СТР. 1 · ВВЕДЕНИЕ</div>
       </div>,
 
       // ===== Стр. 2 · Вопрос 1 =====
-      <div className="lv-page" key="page-2">
+      <div
+        className="lv-page"
+        key="page-2"
+        style={{ backgroundImage: 'none' }}
+      >
         <div className="lv-page-header">
           <div className="lv-page-subtitle">Книга жизни · Вопрос 1 из 40</div>
           <div className="lv-page-title">Истоки</div>
         </div>
 
-        {/* Вопрос — шрифт чуток поменьше, чтобы всё влезало, и запас снизу */}
         <div
           className="lv-page-body"
           style={{
@@ -123,7 +129,7 @@ export default function DynamicPage({ params }: PageProps) {
 
         <div
           className="lv-page-answer"
-          style={{ marginBottom: '18px' }} // чтобы сверху не прижималось к низу
+          style={{ marginBottom: '18px' }}
         >
           <div className="lv-page-answer-label">Ваш ответ</div>
           <div
@@ -133,7 +139,6 @@ export default function DynamicPage({ params }: PageProps) {
             Можно напечатать с клавиатуры или нажать 🎙 и наговорить.
           </div>
 
-          {/* Поле по высоте меньше примерно вдвое */}
           <div
             style={{
               display: 'flex',
@@ -146,7 +151,7 @@ export default function DynamicPage({ params }: PageProps) {
               placeholder="Напишите здесь свой ответ. Не спешите, у вас есть время."
               rows={4}
               value={answer1}
-              onChange={e => setAnswer1(e.target.value)}
+              onChange={(e) => setAnswer1(e.target.value)}
               onTouchStart={stopFlip}
               onMouseDown={stopFlip}
               style={{
@@ -167,7 +172,6 @@ export default function DynamicPage({ params }: PageProps) {
             />
           </div>
 
-          {/* Кнопка микрофона — компактная, близко к полю */}
           <div
             style={{
               width: '92%',
@@ -181,7 +185,7 @@ export default function DynamicPage({ params }: PageProps) {
           >
             <button
               type="button"
-              onClick={e => {
+              onClick={(e) => {
                 e.stopPropagation();
                 startDictation(setAnswer1);
               }}
@@ -203,12 +207,15 @@ export default function DynamicPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Внизу оставляем чистую зону и только подпись страницы */}
         <div className="lv-page-footer">СТР. 2 · ВОПРОС I</div>
       </div>,
 
       // ===== Стр. 3 · Вопрос 2 =====
-      <div className="lv-page" key="page-3">
+      <div
+        className="lv-page"
+        key="page-3"
+        style={{ backgroundImage: 'none' }}
+      >
         <div className="lv-page-header">
           <div className="lv-page-subtitle">Книга жизни · Вопрос 2 из 40</div>
           <div className="lv-page-title">Выбор</div>
@@ -250,7 +257,7 @@ export default function DynamicPage({ params }: PageProps) {
               placeholder="Опишите тот выбор, который до сих пор чувствуете как поворотный."
               rows={4}
               value={answer2}
-              onChange={e => setAnswer2(e.target.value)}
+              onChange={(e) => setAnswer2(e.target.value)}
               onTouchStart={stopFlip}
               onMouseDown={stopFlip}
               style={{
@@ -284,7 +291,7 @@ export default function DynamicPage({ params }: PageProps) {
           >
             <button
               type="button"
-              onClick={e => {
+              onClick={(e) => {
                 e.stopPropagation();
                 startDictation(setAnswer2);
               }}
@@ -310,7 +317,11 @@ export default function DynamicPage({ params }: PageProps) {
       </div>,
 
       // ===== Стр. 4 · Портрет =====
-      <div className="lv-page" key="page-4">
+      <div
+        className="lv-page"
+        key="page-4"
+        style={{ backgroundImage: 'none' }}
+      >
         <div className="lv-page-header">
           <div className="lv-page-subtitle">Финал</div>
           <div className="lv-page-title">Философский портрет</div>
@@ -335,13 +346,24 @@ export default function DynamicPage({ params }: PageProps) {
       </div>,
 
       // ===== Стр. 5–9 · Большой текст =====
-      <div className="lv-page" key="page-5">
+      <div
+        className="lv-page"
+        key="page-5"
+        style={{ backgroundImage: 'none' }}
+      >
         <div className="lv-page-header">
           <div className="lv-page-subtitle">Философский текст · Часть I</div>
           <div className="lv-page-title">Общий образ</div>
         </div>
 
-        <div className="lv-page-body">
+        <div
+          className="lv-page-body"
+          style={{
+            fontSize: '0.98rem',
+            lineHeight: 1.6,
+            marginBottom: '28px',
+          }}
+        >
           <p>
             Здесь будет первая часть большого философского ответа — общий образ
             человека, который проявляется через его ответы. Эта страница
@@ -358,13 +380,24 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-page-footer">СТР. 5 · ОБЩИЙ ОБРАЗ</div>
       </div>,
 
-      <div className="lv-page" key="page-6">
+      <div
+        className="lv-page"
+        key="page-6"
+        style={{ backgroundImage: 'none' }}
+      >
         <div className="lv-page-header">
           <div className="lv-page-subtitle">Философский текст · Часть II</div>
           <div className="lv-page-title">Ценности и опоры</div>
         </div>
 
-        <div className="lv-page-body">
+        <div
+          className="lv-page-body"
+          style={{
+            fontSize: '0.98rem',
+            lineHeight: 1.6,
+            marginBottom: '28px',
+          }}
+        >
           <p>
             На этой странице будет говорить о том, что для вас по-настоящему
             важно: люди, свобода, безопасность, творчество, путь, в котором
@@ -381,13 +414,24 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-page-footer">СТР. 6 · ЦЕННОСТИ</div>
       </div>,
 
-      <div className="lv-page" key="page-7">
+      <div
+        className="lv-page"
+        key="page-7"
+        style={{ backgroundImage: 'none' }}
+      >
         <div className="lv-page-header">
           <div className="lv-page-subtitle">Философский текст · Часть III</div>
           <div className="lv-page-title">Внутренние противоречия</div>
         </div>
 
-        <div className="lv-page-body">
+        <div
+          className="lv-page-body"
+          style={{
+            fontSize: '0.98rem',
+            lineHeight: 1.6,
+            marginBottom: '28px',
+          }}
+        >
           <p>
             Здесь появится мягкий разбор тех мест, где вы сами с собой не до
             конца согласны: чего хотите и чего боитесь одновременно, где
@@ -403,13 +447,24 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-page-footer">СТР. 7 · ПРОТИВОРЕЧИЯ</div>
       </div>,
 
-      <div className="lv-page" key="page-8">
+      <div
+        className="lv-page"
+        key="page-8"
+        style={{ backgroundImage: 'none' }}
+      >
         <div className="lv-page-header">
           <div className="lv-page-subtitle">Философский текст · Часть IV</div>
           <div className="lv-page-title">Сюжет пути</div>
         </div>
 
-        <div className="lv-page-body">
+        <div
+          className="lv-page-body"
+          style={{
+            fontSize: '0.98rem',
+            lineHeight: 1.6,
+            marginBottom: '28px',
+          }}
+        >
           <p>
             Эта страница опишет ваш путь как историю: откуда вы идёте,
             через какие повороты уже прошли и в какой точке, судя по
@@ -424,13 +479,24 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-page-footer">СТР. 8 · ПУТЬ</div>
       </div>,
 
-      <div className="lv-page" key="page-9">
+      <div
+        className="lv-page"
+        key="page-9"
+        style={{ backgroundImage: 'none' }}
+      >
         <div className="lv-page-header">
           <div className="lv-page-subtitle">Философский текст · Часть V</div>
           <div className="lv-page-title">Предложение будущего</div>
         </div>
 
-        <div className="lv-page-body">
+        <div
+          className="lv-page-body"
+          style={{
+            fontSize: '0.98rem',
+            lineHeight: 1.6,
+            marginBottom: '28px',
+          }}
+        >
           <p>
             На этой странице будут несколько аккуратных предложений:
             как можно жить чуть честнее с собой, учитывая всё, что вы
@@ -451,15 +517,8 @@ export default function DynamicPage({ params }: PageProps) {
 
     return (
       <SiteLayout>
-        {/* Вытянутая книга, как мы зафиксировали ранее */}
-        <div
-          style={{
-            transform: 'scale(1.08)',
-            transformOrigin: 'bottom center',
-          }}
-        >
-          <BookLayout pages={pages} />
-        </div>
+        {/* Без масштабирования — подложка и книга совпадают по размеру */}
+        <BookLayout pages={pages} />
       </SiteLayout>
     );
   }
