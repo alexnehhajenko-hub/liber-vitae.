@@ -1,189 +1,144 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
+import dynamic from 'next/dynamic';
 
-export type BookLayoutProps = {
+type BookLayoutProps = {
   pages: React.ReactNode[];
 };
 
-/**
- * BookLayout
- * - раскрытая книга: левая + правая страница
- * - перелистывание:
- *   • кнопки «Назад / Вперёд»
- *   • свайп (тач/мышь)
- *   • стрелки ← / → на клавиатуре
- */
-export function BookLayout({ pages }: BookLayoutProps) {
-  const [spreadIndex, setSpreadIndex] = useState(0);
+type FlipEvent = {
+  data: number; // индекс текущей страницы
+};
 
-  const totalPages = pages.length;
-  const totalSpreads = Math.max(1, Math.ceil(totalPages / 2));
+// Динамический импорт, чтобы не ломать SSR
+const HTMLFlipBook = dynamic(
+  () => import('react-pageflip').then((mod: any) => mod.default),
+  { ssr: false }
+) as any;
 
-  const goPrev = () => {
-    setSpreadIndex((prev) => Math.max(prev - 1, 0));
+export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
+  const bookRef = React.useRef<any>(null);
+  const [current, setCurrent] = React.useState(0);
+
+  const total = pages.length;
+
+  const touchStartX = React.useRef(0);
+  const touchStartY = React.useRef(0);
+
+  const handlePrev = () => {
+    if (!bookRef.current) return;
+    bookRef.current.pageFlip().flipPrev();
   };
 
-  const goNext = () => {
-    setSpreadIndex((prev) => Math.min(prev + 1, totalSpreads - 1));
+  const handleNext = () => {
+    if (!bookRef.current) return;
+    bookRef.current.pageFlip().flipNext();
   };
 
-  // --- расчёт текущих страниц ---
-  const leftIndex = spreadIndex * 2;
-  const rightIndex = leftIndex + 1;
-
-  const leftPage = pages[leftIndex] ?? null;
-  const rightPage = pages[rightIndex] ?? null;
-
-  const currentPageNumber = Math.min(leftIndex + 1, totalPages);
-
-  // --- свайпы (тач + мышь) ---
-  const dragStartX = useRef<number | null>(null);
-  const dragging = useRef(false);
-
-  const startDrag = (clientX: number) => {
-    dragStartX.current = clientX;
-    dragging.current = true;
+  const handleFlip = (e: FlipEvent) => {
+    setCurrent(e.data);
   };
 
-  const endDrag = (clientX: number) => {
-    if (!dragging.current || dragStartX.current == null) {
-      dragging.current = false;
-      dragStartX.current = null;
-      return;
+  // Блокировка горизонтального скролла страницы во время свайпа по книге
+  const lockHorizontalSwipe = React.useCallback((lock: boolean) => {
+    if (typeof document === 'undefined') return;
+    const body = document.body;
+
+    if (lock) {
+      (body.style as any).overscrollBehaviorX = 'none';
+      (body.style as any).touchAction = 'pan-y';
+    } else {
+      (body.style as any).overscrollBehaviorX = '';
+      (body.style as any).touchAction = '';
     }
-
-    const dx = clientX - dragStartX.current;
-    const threshold = 40;
-
-    if (Math.abs(dx) > threshold) {
-      if (dx < 0) {
-        goNext();
-      } else {
-        goPrev();
-      }
-    }
-
-    dragging.current = false;
-    dragStartX.current = null;
-  };
+  }, []);
 
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length !== 1) return;
-    startDrag(e.touches[0].clientX);
+    const touch = e.touches[0];
+    touchStartX.current = touch.clientX;
+    touchStartY.current = touch.clientY;
+    lockHorizontalSwipe(true);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.changedTouches.length === 0) return;
-    endDrag(e.changedTouches[0].clientX);
-  };
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - touchStartX.current);
+    const dy = Math.abs(touch.clientY - touchStartY.current);
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.button !== 0) return;
-    startDrag(e.clientX);
-  };
-
-  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
-    endDrag(e.clientX);
-  };
-
-  // --- стрелки на клавиатуре ---
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        goPrev();
-      } else if (e.key === 'ArrowRight') {
-        goNext();
-      }
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('keydown', handler);
-      return () => {
-        window.removeEventListener('keydown', handler);
-      };
+    // Если жест в основном горизонтальный — запрещаем действие браузера
+    if (dx > dy) {
+      e.preventDefault(); // Safari не должен листать историю, но flipbook всё равно получит события
     }
-  }, [totalSpreads, totalPages]);
+  };
+
+  const handleTouchEnd = () => {
+    lockHorizontalSwipe(false);
+  };
+
+  React.useEffect(() => {
+    // На случай размонтирования компонента
+    return () => {
+      lockHorizontalSwipe(false);
+    };
+  }, [lockHorizontalSwipe]);
 
   return (
-    <div className="lv-book-layout">
-      <div className="lv-book-shadow" />
-
-      <div
-        className="lv-book-open"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-      >
-        {/* ВАЖНО: убираем любые трансформации с контейнеров страниц,
-           чтобы iOS спокойно показывал клавиатуру */}
-        <div
-          className="lv-book-open-page lv-book-open-page--left"
-          style={{ transform: 'none' }}
+    <div
+      className="lv-book-shell"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+    >
+      <div className="lv-book-flip-wrapper">
+        <HTMLFlipBook
+          width={480}
+          height={640}
+          size="stretch"
+          minWidth={320}
+          maxWidth={900}
+          minHeight={480}
+          maxHeight={1000}
+          maxShadowOpacity={0.7}
+          showCover={false}
+          usePortrait={true}
+          mobileScrollSupport={false}
+          className="lv-flip-book"
+          ref={bookRef}
+          onFlip={handleFlip}
         >
-          {leftPage}
-        </div>
-
-        <div
-          className="lv-book-open-page lv-book-open-page--right"
-          style={{ transform: 'none' }}
-        >
-          {rightPage}
-        </div>
-
-        <div className="lv-book-open-spine" />
+          {pages.map((page, index) => (
+            <div key={index} className="lv-flip-page">
+              {page}
+            </div>
+          ))}
+        </HTMLFlipBook>
       </div>
 
-      {/* Навигация под книгой */}
-      <div
-        className="lv-book-nav"
-        style={{
-          marginTop: '18px',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: '24px',
-          fontSize: '0.85rem',
-          letterSpacing: '0.04em',
-          opacity: 0.9,
-        }}
-      >
+      <div className="lv-book-controls">
         <button
           type="button"
-          onClick={goPrev}
-          disabled={spreadIndex === 0}
-          style={{
-            border: 'none',
-            background: 'transparent',
-            cursor: spreadIndex === 0 ? 'default' : 'pointer',
-            opacity: spreadIndex === 0 ? 0.35 : 0.9,
-          }}
+          className="lv-book-nav-btn"
+          onClick={handlePrev}
+          disabled={current <= 0}
         >
           ← Назад
         </button>
 
-        <span>
-          Страница {currentPageNumber} / {totalPages}
+        <span className="lv-book-counter">
+          Страница {current + 1} / {total}
         </span>
 
         <button
           type="button"
-          onClick={goNext}
-          disabled={spreadIndex === totalSpreads - 1}
-          style={{
-            border: 'none',
-            background: 'transparent',
-            cursor:
-              spreadIndex === totalSpreads - 1 ? 'default' : 'pointer',
-            opacity: spreadIndex === totalSpreads - 1 ? 0.35 : 0.9,
-          }}
+          className="lv-book-nav-btn"
+          onClick={handleNext}
+          disabled={current >= total - 1}
         >
           Вперёд →
         </button>
       </div>
     </div>
   );
-}
-
-export default BookLayout;
+};
