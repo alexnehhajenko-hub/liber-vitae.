@@ -41,7 +41,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     setCurrent(e.data);
   };
 
-  // Блокировка горизонтального скролла страницы во время свайпа по книге
+  // Блокировка горизонтального скролла страницы (через css на body)
   const lockHorizontalSwipe = React.useCallback((lock: boolean) => {
     if (typeof document === 'undefined') return;
     const body = document.body;
@@ -58,8 +58,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
 
-    // Если тач начался на интерактивном элементе — НЕ блокируем свайпы,
-    // даём iOS нормально открыть клавиатуру / нажать кнопку.
+    // Если тач начался на input/textarea/кнопке — не трогаем его вообще,
+    // даём iOS спокойно открыть клавиатуру / нажать кнопку.
     const target = e.target as HTMLElement;
     if (target.closest('textarea, input, button, [data-no-swipe]')) {
       swipeLocked.current = false;
@@ -79,10 +79,12 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     const dx = Math.abs(touch.clientX - touchStartX.current);
     const dy = Math.abs(touch.clientY - touchStartY.current);
 
-    // Если жест в основном горизонтальный — запрещаем действие браузера
-    if (dx > dy) {
-      e.preventDefault(); // Safari не листает историю, а flipbook получает события
+    // Если жест пошёл вертикально — разблокируем, чтобы можно было прокрутить страницу
+    if (dy > dx) {
+      swipeLocked.current = false;
+      lockHorizontalSwipe(false);
     }
+    // НИЧЕГО не preventDefault'им — flipbook сам обработает свайп.
   };
 
   const handleTouchEnd = () => {
@@ -92,8 +94,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   };
 
   React.useEffect(() => {
-    // На случай размонтирования компонента
     return () => {
+      // На случай размонтирования компонента
       lockHorizontalSwipe(false);
     };
   }, [lockHorizontalSwipe]);
@@ -118,7 +120,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true}
-          mobileScrollSupport={false}
+          mobileScrollSupport={true} // ставим дефолт, как в документации
           className="lv-flip-book"
           ref={bookRef}
           onFlip={handleFlip}
