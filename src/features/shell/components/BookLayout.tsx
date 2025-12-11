@@ -13,7 +13,7 @@ type FlipEvent = {
 
 // Динамический импорт, чтобы не ломать SSR
 const HTMLFlipBook = dynamic(
-  () => import('react-pageflip').then((mod: any) => mod.default),
+  () => import('react-pageflip').then((mod: any) => mod.default || mod),
   { ssr: false }
 ) as any;
 
@@ -23,29 +23,36 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
   const total = pages.length;
 
-  const getApi = () => {
-    if (!bookRef.current) return null;
-    // у экземпляра есть метод pageFlip()
-    if (typeof bookRef.current.pageFlip === 'function') {
-      return bookRef.current.pageFlip();
+  // Надёжно достаём PageFlip-API из ref
+  const getPageFlip = React.useCallback(() => {
+    const inst = bookRef.current;
+    if (!inst) return null;
+
+    if (typeof inst.pageFlip === 'function') {
+      return inst.pageFlip();
     }
-    return bookRef.current;
-  };
+    if (typeof inst.getPageFlip === 'function') {
+      return inst.getPageFlip();
+    }
+
+    return null;
+  }, []);
 
   const handlePrev = () => {
-    const api = getApi();
+    const api = getPageFlip();
     if (!api) return;
-    api.flipPrev();
+    // без анимации можно turnToPrevPage, с анимацией flipPrev
+    api.turnToPrevPage?.() ?? api.flipPrev?.('bottom');
   };
 
   const handleNext = () => {
-    const api = getApi();
+    const api = getPageFlip();
     if (!api) return;
-    api.flipNext();
+    api.turnToNextPage?.() ?? api.flipNext?.('bottom');
   };
 
   const handleFlip = (e: FlipEvent) => {
-    // ReactPageFlip отдаёт индекс текущей страницы
+    // react-pageflip в e.data отдаёт индекс страницы
     setCurrent(e.data);
   };
 
