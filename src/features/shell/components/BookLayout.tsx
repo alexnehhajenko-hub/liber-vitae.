@@ -23,10 +23,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
   const total = pages.length;
 
-  const touchStartX = React.useRef(0);
-  const touchStartY = React.useRef(0);
-  const swipeLocked = React.useRef(false);
-
   const handlePrev = () => {
     if (!bookRef.current) return;
     bookRef.current.pageFlip().flipPrev();
@@ -41,61 +37,29 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     setCurrent(e.data);
   };
 
-  // Блокировка горизонтального скролла страницы (через css на body)
+  // Мягко блокируем горизонтальный «выезд» браузера, пока палец на книге
   const lockHorizontalSwipe = React.useCallback((lock: boolean) => {
     if (typeof document === 'undefined') return;
     const body = document.body;
 
     if (lock) {
       (body.style as any).overscrollBehaviorX = 'none';
-      (body.style as any).touchAction = 'pan-y';
     } else {
       (body.style as any).overscrollBehaviorX = '';
-      (body.style as any).touchAction = '';
     }
   }, []);
 
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-
-    // Если тач начался на input/textarea/кнопке — не трогаем его вообще,
-    // даём iOS спокойно открыть клавиатуру / нажать кнопку.
-    const target = e.target as HTMLElement;
-    if (target.closest('textarea, input, button, [data-no-swipe]')) {
-      swipeLocked.current = false;
-      return;
-    }
-
-    touchStartX.current = touch.clientX;
-    touchStartY.current = touch.clientY;
-    swipeLocked.current = true;
+  const handleShellTouchStart = () => {
     lockHorizontalSwipe(true);
   };
 
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!swipeLocked.current) return;
-
-    const touch = e.touches[0];
-    const dx = Math.abs(touch.clientX - touchStartX.current);
-    const dy = Math.abs(touch.clientY - touchStartY.current);
-
-    // Если жест пошёл вертикально — разблокируем, чтобы можно было прокрутить страницу
-    if (dy > dx) {
-      swipeLocked.current = false;
-      lockHorizontalSwipe(false);
-    }
-    // НИЧЕГО не preventDefault'им — flipbook сам обработает свайп.
-  };
-
-  const handleTouchEnd = () => {
-    if (!swipeLocked.current) return;
-    swipeLocked.current = false;
+  const handleShellTouchEnd = () => {
     lockHorizontalSwipe(false);
   };
 
   React.useEffect(() => {
     return () => {
-      // На случай размонтирования компонента
+      // На случай размонтирования
       lockHorizontalSwipe(false);
     };
   }, [lockHorizontalSwipe]);
@@ -103,10 +67,9 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   return (
     <div
       className="lv-book-shell"
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
+      onTouchStart={handleShellTouchStart}
+      onTouchEnd={handleShellTouchEnd}
+      onTouchCancel={handleShellTouchEnd}
     >
       <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
@@ -120,7 +83,15 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true}
-          mobileScrollSupport={true} // ставим дефолт, как в документации
+          // ВАЖНО: внутри книги можно скроллить/жить, не глушим контент
+          mobileScrollSupport={false}
+          // КЛЮЧЕВОЕ:
+          // Клик по центру книги не листает — листание только жестом/свайпом
+          disableFlipByClick={true}
+          // Клики нормально проходят до детей (кнопки и т.п.)
+          clickEventForward={true}
+          // Нужно немного «осознанный» свайп, чтобы случайный дрожащий палец не листал
+          swipeDistance={60}
           className="lv-flip-book"
           ref={bookRef}
           onFlip={handleFlip}
