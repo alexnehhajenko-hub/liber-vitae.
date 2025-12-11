@@ -10,13 +10,20 @@ type PageProps = {
   };
 };
 
+// Какое поле сейчас редактируется в модальном окне
+type ActiveEditor = 'q1' | 'q2' | null;
+
 export default function DynamicPage({ params }: PageProps) {
   const rawSlug = params.slug ?? '';
   const slug = decodeURIComponent(rawSlug);
 
-  // ---- ответы (локально) ----
+  // ---- ответы (храним в состоянии) ----
   const [answer1, setAnswer1] = useState('');
   const [answer2, setAnswer2] = useState('');
+
+  // ---- модальное окно редактирования ----
+  const [activeEditor, setActiveEditor] = useState<ActiveEditor>(null);
+  const [draftText, setDraftText] = useState(''); // временный текст в модалке
 
   // ---- голосовой ввод ----
   const [recognition, setRecognition] = useState<any | null>(null);
@@ -39,12 +46,10 @@ export default function DynamicPage({ params }: PageProps) {
     setRecognition(rec);
   }, []);
 
-  const startDictation = (
-    setter: React.Dispatch<React.SetStateAction<string>>
-  ) => {
+  const startDictation = () => {
     if (!recognition) {
       alert(
-        'Ваш браузер не даёт запустить голосовой ввод. Можно спокойно печатать с клавиатуры.'
+        'Ваш браузер сейчас не поддерживает голосовой ввод. Можно спокойно печатать с клавиатуры.'
       );
       return;
     }
@@ -52,7 +57,7 @@ export default function DynamicPage({ params }: PageProps) {
     try {
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript as string;
-        setter(prev =>
+        setDraftText(prev =>
           prev
             ? prev + (prev.endsWith(' ') ? '' : ' ') + transcript
             : transcript
@@ -75,54 +80,35 @@ export default function DynamicPage({ params }: PageProps) {
     }
   };
 
-  // ---- Фикс для клавиатуры на iOS / мобильных ----
-  // Делаем НИЗКОУРОВНЕВЫЙ обработчик touchstart в capture-режиме
-  // только на полях .lv-page-answer-input:
-  // 1) останавливаем всплытие (жест не уходит в react-pageflip),
-  // 2) даём этому элементу фокус -> выезжает клавиатура.
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-
-    const inputs = Array.from(
-      document.querySelectorAll<HTMLTextAreaElement>('.lv-page-answer-input')
-    );
-
-    const handlers: Array<{
-      el: HTMLTextAreaElement;
-      fn: (ev: TouchEvent) => void;
-    }> = [];
-
-    inputs.forEach(el => {
-      const handler = (ev: TouchEvent) => {
-        // Жест не уходит наверх к flipbook
-        ev.stopPropagation();
-        // Небольшая задержка, чтобы Safari успел обработать тап
-        setTimeout(() => {
-          try {
-            el.focus();
-          } catch {
-            /* ignore */
-          }
-        }, 0);
-      };
-
-      el.addEventListener('touchstart', handler, { capture: true });
-      handlers.push({ el, fn: handler });
-    });
-
-    return () => {
-      handlers.forEach(({ el, fn }) => {
-        el.removeEventListener('touchstart', fn, { capture: true } as any);
-      });
-    };
-  }, [answer1, answer2]); // при появлении/смене полей в DOM перевешиваем обработчики
-
-  // Чтобы React-событие не лезло выше (подстраховка)
-  const stopFlip = (e: React.SyntheticEvent) => {
-    e.stopPropagation();
+  // ---- открыть модалку для редактирования ответа ----
+  const openEditor = (which: ActiveEditor) => {
+    if (which === 'q1') {
+      setDraftText(answer1);
+    } else if (which === 'q2') {
+      setDraftText(answer2);
+    } else {
+      setDraftText('');
+    }
+    setActiveEditor(which);
   };
 
-  // базовый стиль: футер всегда внизу, на всех страницах одна линия
+  // ---- сохранить текст из модалки ----
+  const saveEditor = () => {
+    if (activeEditor === 'q1') {
+      setAnswer1(draftText);
+    } else if (activeEditor === 'q2') {
+      setAnswer2(draftText);
+    }
+    setActiveEditor(null);
+    setIsListening(false);
+  };
+
+  const cancelEditor = () => {
+    setActiveEditor(null);
+    setIsListening(false);
+  };
+
+  // базовый стиль страницы: футер всегда внизу
   const pageBaseStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
@@ -155,8 +141,8 @@ export default function DynamicPage({ params }: PageProps) {
       <div className="lv-page" key="page-2" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
-            <div className="lv-page-subtitle">Вопрос I</div>
-            <div className="lv-page-title">Истоки</div>
+            <div className="lv-page-subtitle">ВОПРОС I</div>
+            <div className="lv-page-title">ИСТОКИ</div>
           </div>
 
           <div
@@ -174,24 +160,23 @@ export default function DynamicPage({ params }: PageProps) {
               className="lv-page-answer-hint"
               style={{ marginTop: 4, fontSize: '0.8rem' }}
             >
-              Можно напечатать с клавиатуры или нажать 🎙 и наговорить.
+              Нажмите на поле ниже, чтобы написать или наговорить ответ.
             </div>
 
+            {/* "Фальшивое" поле: просто красивая рамка.
+                При нажатии открываем модальное окно,
+                где уже настоящий textarea и клавиатура. */}
             <div
+              onClick={() => openEditor('q1')}
+              onTouchEnd={() => openEditor('q1')}
               style={{
+                marginTop: 10,
                 display: 'flex',
                 justifyContent: 'center',
-                marginTop: 8,
               }}
             >
-              <textarea
+              <div
                 className="lv-page-answer-input"
-                placeholder="Напишите здесь свой ответ. Не спешите, у вас есть время."
-                rows={4}
-                value={answer1}
-                onChange={e => setAnswer1(e.target.value)}
-                onTouchStart={stopFlip}
-                onMouseDown={stopFlip}
                 style={{
                   width: '92%',
                   minHeight: '90px',
@@ -199,49 +184,19 @@ export default function DynamicPage({ params }: PageProps) {
                   border: '1px solid rgba(0,0,0,0.28)',
                   boxShadow:
                     '0 10px 24px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.14)',
-                  background: 'transparent',
+                  background: 'rgba(255,255,255,0.03)',
                   padding: '10px 16px',
-                  resize: 'vertical',
                   fontSize: '0.96rem',
                   lineHeight: 1.4,
                   color: 'inherit',
-                  touchAction: 'auto',
-                }}
-              />
-            </div>
-
-            <div
-              style={{
-                width: '92%',
-                margin: '6px auto 0',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: 8,
-                fontSize: '0.8rem',
-                alignItems: 'center',
-              }}
-            >
-              <button
-                type="button"
-                onClick={e => {
-                  e.stopPropagation();
-                  startDictation(setAnswer1);
-                }}
-                style={{
-                  borderRadius: 999,
-                  border: '1px solid rgba(0,0,0,0.35)',
-                  padding: '4px 10px',
-                  background:
-                    'linear-gradient(120deg, rgba(0,0,0,0.25), rgba(0,0,0,0.12))',
-                  color: 'rgba(255,255,255,0.9)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
+                  overflow: 'hidden',
+                  whiteSpace: 'pre-wrap',
                 }}
               >
-                <span>🎙</span>
-                <span>{isListening ? 'Слушаю…' : 'Наговорить'}</span>
-              </button>
+                {answer1
+                  ? answer1
+                  : 'Напишите здесь свой ответ. Не спешите, у вас есть время.'}
+              </div>
             </div>
           </div>
         </div>
@@ -253,8 +208,8 @@ export default function DynamicPage({ params }: PageProps) {
       <div className="lv-page" key="page-3" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
-            <div className="lv-page-subtitle">Вопрос II</div>
-            <div className="lv-page-title">Выбор</div>
+            <div className="lv-page-subtitle">ВОПРОС II</div>
+            <div className="lv-page-title">ВЫБОР</div>
           </div>
 
           <div
@@ -268,27 +223,23 @@ export default function DynamicPage({ params }: PageProps) {
           <div className="lv-page-answer" style={{ marginBottom: 18 }}>
             <div className="lv-page-answer-label">Ваш ответ</div>
             <div
-              className="lv-page-answer-hint"
+              className="lv-page-answer-hинt"
               style={{ marginTop: 4, fontSize: '0.8rem' }}
             >
-              Можно напечатать или надиктовать — как удобнее.
+              Нажмите на поле ниже, чтобы написать или наговорить ответ.
             </div>
 
             <div
+              onClick={() => openEditor('q2')}
+              onTouchEnd={() => openEditor('q2')}
               style={{
+                marginTop: 10,
                 display: 'flex',
                 justifyContent: 'center',
-                marginTop: 8,
               }}
             >
-              <textarea
+              <div
                 className="lv-page-answer-input"
-                placeholder="Опишите тот выбор, который до сих пор чувствуете как поворотный."
-                rows={4}
-                value={answer2}
-                onChange={e => setAnswer2(e.target.value)}
-                onTouchStart={stopFlip}
-                onMouseDown={stopFlip}
                 style={{
                   width: '92%',
                   minHeight: '90px',
@@ -296,49 +247,19 @@ export default function DynamicPage({ params }: PageProps) {
                   border: '1px solid rgba(0,0,0,0.28)',
                   boxShadow:
                     '0 10px 24px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.14)',
-                  background: 'transparent',
+                  background: 'rgba(255,255,255,0.03)',
                   padding: '10px 16px',
-                  resize: 'vertical',
                   fontSize: '0.96rem',
                   lineHeight: 1.4,
                   color: 'inherit',
-                  touchAction: 'auto',
-                }}
-              />
-            </div>
-
-            <div
-              style={{
-                width: '92%',
-                margin: '6px auto 0',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: 8,
-                fontSize: '0.8rem',
-                alignItems: 'center',
-              }}
-            >
-              <button
-                type="button"
-                onClick={e => {
-                  e.stopPropagation();
-                  startDictation(setAnswer2);
-                }}
-                style={{
-                  borderRadius: 999,
-                  border: '1px solid rgba(0,0,0,0.35)',
-                  padding: '4px 10px',
-                  background:
-                    'linear-gradient(120deg, rgba(0,0,0,0.25), rgba(0,0,0,0.12))',
-                  color: 'rgba(255,255,255,0.9)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
+                  overflow: 'hidden',
+                  whiteSpace: 'pre-wrap',
                 }}
               >
-                <span>🎙</span>
-                <span>{isListening ? 'Слушаю…' : 'Наговорить'}</span>
-              </button>
+                {answer2
+                  ? answer2
+                  : 'Опишите тот выбор, который до сих пор чувствуете как поворотный.'}
+              </div>
             </div>
           </div>
         </div>
@@ -350,8 +271,8 @@ export default function DynamicPage({ params }: PageProps) {
       <div className="lv-page" key="page-4" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
-            <div className="lv-page-subtitle">Финал</div>
-            <div className="lv-page-title">Философский портрет</div>
+            <div className="lv-page-subtitle">ФИНАЛ</div>
+            <div className="lv-page-title">ФИЛОСОФСКИЙ ПОРТРЕТ</div>
           </div>
 
           <div className="lv-page-portrait-block">
@@ -371,20 +292,163 @@ export default function DynamicPage({ params }: PageProps) {
 
     return (
       <SiteLayout>
+        {/* Книга остаётся как есть, со свайпами */}
         <BookLayout pages={pages} />
+
+        {/* Модальное окно редактирования ответа (НЕ внутри книги) */}
+        {activeEditor && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(0,0,0,0.55)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 50,
+            }}
+          >
+            <div
+              style={{
+                width: '90%',
+                maxWidth: 500,
+                maxHeight: '80vh',
+                background:
+                  'linear-gradient(180deg, #f3e0c4 0%, #e3c090 100%)',
+                borderRadius: 24,
+                boxShadow: '0 18px 40px rgba(0,0,0,0.6)',
+                padding: '18px 18px 14px',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '0.8rem',
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                  opacity: 0.8,
+                  marginBottom: 4,
+                }}
+              >
+                {activeEditor === 'q1' ? 'Вопрос I' : 'Вопрос II'}
+              </div>
+              <div
+                style={{
+                  fontSize: '1.15rem',
+                  fontWeight: 600,
+                  marginBottom: 8,
+                }}
+              >
+                Ваш ответ
+              </div>
+
+              <div
+                style={{
+                  fontSize: '0.85rem',
+                  marginBottom: 8,
+                  opacity: 0.8,
+                }}
+              >
+                Можно напечатать с клавиатуры или нажать 🎙 и наговорить.
+              </div>
+
+              <textarea
+                autoFocus
+                value={draftText}
+                onChange={e => setDraftText(e.target.value)}
+                style={{
+                  flex: 1,
+                  minHeight: 140,
+                  borderRadius: 16,
+                  border: '1px solid rgba(0,0,0,0.25)',
+                  padding: '10px 12px',
+                  fontSize: '0.95rem',
+                  lineHeight: 1.4,
+                  resize: 'vertical',
+                }}
+              />
+
+              <div
+                style={{
+                  marginTop: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 10,
+                  flexWrap: 'wrap',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={startDictation}
+                  style={{
+                    borderRadius: 999,
+                    border: '1px solid rgba(0,0,0,0.35)',
+                    padding: '6px 12px',
+                    background:
+                      'linear-gradient(120deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2))',
+                    color: 'rgba(255,255,255,0.95)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: '0.9rem',
+                  }}
+                >
+                  <span>🎙</span>
+                  <span>{isListening ? 'Слушаю…' : 'Наговорить'}</span>
+                </button>
+
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={cancelEditor}
+                    style={{
+                      borderRadius: 999,
+                      padding: '6px 12px',
+                      border: '1px solid rgba(0,0,0,0.25)',
+                      background: 'transparent',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    Отмена
+                  </button>
+                  <button
+                    type="button"
+                    onClick={saveEditor}
+                    style={{
+                      borderRadius: 999,
+                      padding: '6px 14px',
+                      border: 'none',
+                      background:
+                        'linear-gradient(120deg, #b57b2f, #e2a858)',
+                      color: '#fff',
+                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    Сохранить
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </SiteLayout>
     );
   }
 
-  // ---------- остальные страницы ----------
+  // ---------- все остальные страницы ----------
   return (
     <SiteLayout>
       <div className="lv-book-layout">
         <div className="lv-book-shadow" />
 
         <div className="lv-book-open">
+          {/* Левая страница — декоративная */}
           <div className="lv-book-open-page lv-book-open-page--left" />
 
+          {/* Правая страница — с текстом */}
           <article className="lv-book-open-page lv-book-open-page--right">
             <h1 className="lv-book-heading">Страница:</h1>
             <p className="lv-book-body">
@@ -393,6 +457,7 @@ export default function DynamicPage({ params }: PageProps) {
             </p>
           </article>
 
+          {/* Переплёт посередине */}
           <div className="lv-book-open-spine" />
         </div>
       </div>
