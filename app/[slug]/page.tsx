@@ -14,7 +14,7 @@ export default function DynamicPage({ params }: PageProps) {
   const rawSlug = params.slug ?? '';
   const slug = decodeURIComponent(rawSlug);
 
-  // ---- ответы (локально, без сервера пока) ----
+  // ---- ответы (локально) ----
   const [answer1, setAnswer1] = useState('');
   const [answer2, setAnswer2] = useState('');
 
@@ -52,7 +52,7 @@ export default function DynamicPage({ params }: PageProps) {
     try {
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript as string;
-        setter((prev) =>
+        setter(prev =>
           prev
             ? prev + (prev.endsWith(' ') ? '' : ' ') + transcript
             : transcript
@@ -75,12 +75,54 @@ export default function DynamicPage({ params }: PageProps) {
     }
   };
 
-  // чтобы тап по полю не воспринимался как перелистывание
+  // ---- Фикс для клавиатуры на iOS / мобильных ----
+  // Делаем НИЗКОУРОВНЕВЫЙ обработчик touchstart в capture-режиме
+  // только на полях .lv-page-answer-input:
+  // 1) останавливаем всплытие (жест не уходит в react-pageflip),
+  // 2) даём этому элементу фокус -> выезжает клавиатура.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const inputs = Array.from(
+      document.querySelectorAll<HTMLTextAreaElement>('.lv-page-answer-input')
+    );
+
+    const handlers: Array<{
+      el: HTMLTextAreaElement;
+      fn: (ev: TouchEvent) => void;
+    }> = [];
+
+    inputs.forEach(el => {
+      const handler = (ev: TouchEvent) => {
+        // Жест не уходит наверх к flipbook
+        ev.stopPropagation();
+        // Небольшая задержка, чтобы Safari успел обработать тап
+        setTimeout(() => {
+          try {
+            el.focus();
+          } catch {
+            /* ignore */
+          }
+        }, 0);
+      };
+
+      el.addEventListener('touchstart', handler, { capture: true });
+      handlers.push({ el, fn: handler });
+    });
+
+    return () => {
+      handlers.forEach(({ el, fn }) => {
+        el.removeEventListener('touchstart', fn, { capture: true } as any);
+      });
+    };
+  }, [answer1, answer2]); // при появлении/смене полей в DOM перевешиваем обработчики
+
+  // Чтобы React-событие не лезло выше (подстраховка)
   const stopFlip = (e: React.SyntheticEvent) => {
     e.stopPropagation();
   };
 
-  // базовый стиль страницы — футер всегда внизу
+  // базовый стиль: футер всегда внизу, на всех страницах одна линия
   const pageBaseStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
@@ -88,10 +130,10 @@ export default function DynamicPage({ params }: PageProps) {
     height: '100%',
   };
 
-  // ---------- /book: живая книга ----------
+  // ---------- /book ----------
   if (slug === 'book') {
     const pages: React.ReactNode[] = [
-      // ===== Страница 1: обложка =====
+      // ===== Стр. 1: обложка =====
       <div className="lv-page" key="page-1" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
@@ -109,7 +151,7 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-page-footer">СТР. 1 · ВВЕДЕНИЕ</div>
       </div>,
 
-      // ===== Страница 2: Вопрос I =====
+      // ===== Стр. 2: Вопрос I =====
       <div className="lv-page" key="page-2" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
@@ -147,7 +189,7 @@ export default function DynamicPage({ params }: PageProps) {
                 placeholder="Напишите здесь свой ответ. Не спешите, у вас есть время."
                 rows={4}
                 value={answer1}
-                onChange={(e) => setAnswer1(e.target.value)}
+                onChange={e => setAnswer1(e.target.value)}
                 onTouchStart={stopFlip}
                 onMouseDown={stopFlip}
                 style={{
@@ -181,7 +223,7 @@ export default function DynamicPage({ params }: PageProps) {
             >
               <button
                 type="button"
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   startDictation(setAnswer1);
                 }}
@@ -207,7 +249,7 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-page-footer">СТР. 2 · ВОПРОС I</div>
       </div>,
 
-      // ===== Страница 3: Вопрос II =====
+      // ===== Стр. 3: Вопрос II =====
       <div className="lv-page" key="page-3" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
@@ -244,7 +286,7 @@ export default function DynamicPage({ params }: PageProps) {
                 placeholder="Опишите тот выбор, который до сих пор чувствуете как поворотный."
                 rows={4}
                 value={answer2}
-                onChange={(e) => setAnswer2(e.target.value)}
+                onChange={e => setAnswer2(e.target.value)}
                 onTouchStart={stopFlip}
                 onMouseDown={stopFlip}
                 style={{
@@ -278,7 +320,7 @@ export default function DynamicPage({ params }: PageProps) {
             >
               <button
                 type="button"
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   startDictation(setAnswer2);
                 }}
@@ -304,7 +346,7 @@ export default function DynamicPage({ params }: PageProps) {
         <div className="lv-page-footer">СТР. 3 · ВОПРОС II</div>
       </div>,
 
-      // ===== Страница 4: Портрет =====
+      // ===== Стр. 4: Портрет =====
       <div className="lv-page" key="page-4" style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
@@ -334,17 +376,15 @@ export default function DynamicPage({ params }: PageProps) {
     );
   }
 
-  // ---------- остальные динамические страницы ----------
+  // ---------- остальные страницы ----------
   return (
     <SiteLayout>
       <div className="lv-book-layout">
         <div className="lv-book-shadow" />
 
         <div className="lv-book-open">
-          {/* Левая страница — декоративная */}
           <div className="lv-book-open-page lv-book-open-page--left" />
 
-          {/* Правая страница — с текстом */}
           <article className="lv-book-open-page lv-book-open-page--right">
             <h1 className="lv-book-heading">Страница:</h1>
             <p className="lv-book-body">
@@ -353,7 +393,6 @@ export default function DynamicPage({ params }: PageProps) {
             </p>
           </article>
 
-          {/* Переплёт посередине */}
           <div className="lv-book-open-spine" />
         </div>
       </div>
