@@ -8,7 +8,7 @@ type BookLayoutProps = {
 };
 
 type FlipEvent = {
-  data: number; // индекс текущей страницы
+  data: number; // индекс текущей страницы (0, 1, 2, ...)
 };
 
 // Динамический импорт, чтобы не ломать SSR
@@ -23,54 +23,34 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
   const total = pages.length;
 
+  const getApi = () => {
+    if (!bookRef.current) return null;
+    // у экземпляра есть метод pageFlip()
+    if (typeof bookRef.current.pageFlip === 'function') {
+      return bookRef.current.pageFlip();
+    }
+    return bookRef.current;
+  };
+
   const handlePrev = () => {
-    if (!bookRef.current) return;
-    bookRef.current.pageFlip().flipPrev();
+    const api = getApi();
+    if (!api) return;
+    api.flipPrev();
   };
 
   const handleNext = () => {
-    if (!bookRef.current) return;
-    bookRef.current.pageFlip().flipNext();
+    const api = getApi();
+    if (!api) return;
+    api.flipNext();
   };
 
   const handleFlip = (e: FlipEvent) => {
+    // ReactPageFlip отдаёт индекс текущей страницы
     setCurrent(e.data);
   };
 
-  // Мягко блокируем горизонтальный «выезд» браузера, пока палец на книге
-  const lockHorizontalSwipe = React.useCallback((lock: boolean) => {
-    if (typeof document === 'undefined') return;
-    const body = document.body;
-
-    if (lock) {
-      (body.style as any).overscrollBehaviorX = 'none';
-    } else {
-      (body.style as any).overscrollBehaviorX = '';
-    }
-  }, []);
-
-  const handleShellTouchStart = () => {
-    lockHorizontalSwipe(true);
-  };
-
-  const handleShellTouchEnd = () => {
-    lockHorizontalSwipe(false);
-  };
-
-  React.useEffect(() => {
-    return () => {
-      // На случай размонтирования
-      lockHorizontalSwipe(false);
-    };
-  }, [lockHorizontalSwipe]);
-
   return (
-    <div
-      className="lv-book-shell"
-      onTouchStart={handleShellTouchStart}
-      onTouchEnd={handleShellTouchEnd}
-      onTouchCancel={handleShellTouchEnd}
-    >
+    <div className="lv-book-shell">
       <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
           width={480}
@@ -83,15 +63,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true}
-          // ВАЖНО: внутри книги можно скроллить/жить, не глушим контент
           mobileScrollSupport={false}
-          // КЛЮЧЕВОЕ:
-          // Клик по центру книги не листает — листание только жестом/свайпом
-          disableFlipByClick={true}
-          // Клики нормально проходят до детей (кнопки и т.п.)
-          clickEventForward={true}
-          // Нужно немного «осознанный» свайп, чтобы случайный дрожащий палец не листал
-          swipeDistance={60}
           className="lv-flip-book"
           ref={bookRef}
           onFlip={handleFlip}
