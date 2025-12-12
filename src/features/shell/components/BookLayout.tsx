@@ -18,48 +18,35 @@ const HTMLFlipBook = dynamic(
 ) as any;
 
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
-  const bookRef = React.useRef<any>(null);
-  const [current, setCurrent] = React.useState(0);
+  // Текущая страница (0,1,2,3)
+  const [pageIndex, setPageIndex] = React.useState(0);
 
   const total = pages.length;
 
-  // Надёжно достаём PageFlip-API из ref
-  const getPageFlip = React.useCallback(() => {
-    const inst = bookRef.current;
-    if (!inst) return null;
-
-    if (typeof inst.pageFlip === 'function') {
-      return inst.pageFlip();
-    }
-    if (typeof inst.getPageFlip === 'function') {
-      return inst.getPageFlip();
-    }
-
-    return null;
-  }, []);
-
+  // Кнопка «Назад»
   const handlePrev = () => {
-    const api = getPageFlip();
-    if (!api) return;
-    // без анимации можно turnToPrevPage, с анимацией flipPrev
-    api.turnToPrevPage?.() ?? api.flipPrev?.('bottom');
+    setPageIndex((prev) => (prev > 0 ? prev - 1 : prev));
   };
 
+  // Кнопка «Вперёд»
   const handleNext = () => {
-    const api = getPageFlip();
-    if (!api) return;
-    api.turnToNextPage?.() ?? api.flipNext?.('bottom');
+    setPageIndex((prev) => (prev < total - 1 ? prev + 1 : prev));
   };
 
+  // Свайп внутри книги — библиотека сама листает,
+  // а мы просто синхронизируем номер страницы.
   const handleFlip = (e: FlipEvent) => {
-    // react-pageflip в e.data отдаёт индекс страницы
-    setCurrent(e.data);
+    if (typeof e?.data === 'number') {
+      setPageIndex(e.data);
+    }
   };
 
   return (
     <div className="lv-book-shell">
       <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
+          key={pageIndex}          // при смене страницы пересоздаём компонент
+          startPage={pageIndex}    // с нужной стартовой страницей
           width={480}
           height={640}
           size="stretch"
@@ -72,7 +59,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           usePortrait={true}
           mobileScrollSupport={false}
           className="lv-flip-book"
-          ref={bookRef}
           onFlip={handleFlip}
         >
           {pages.map((page, index) => (
@@ -88,20 +74,20 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           type="button"
           className="lv-book-nav-btn"
           onClick={handlePrev}
-          disabled={current <= 0}
+          disabled={pageIndex <= 0}
         >
           ← Назад
         </button>
 
         <span className="lv-book-counter">
-          Страница {current + 1} / {total}
+          Страница {pageIndex + 1} / {total}
         </span>
 
         <button
           type="button"
           className="lv-book-nav-btn"
           onClick={handleNext}
-          disabled={current >= total - 1}
+          disabled={pageIndex >= total - 1}
         >
           Вперёд →
         </button>
