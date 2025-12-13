@@ -5,10 +5,7 @@ import { SiteLayout } from '../../src/features/shell/components/SiteLayout';
 import { BookLayout } from '../../src/features/shell/components/BookLayout';
 import { QUESTIONS, type Lang, type Question } from '../../src/features/shell/components/questions';
 
-type PageProps = {
-  params: { slug: string };
-};
-
+type PageProps = { params: { slug: string } };
 type ActiveEditor = number | null;
 
 function toRoman(n: number): string {
@@ -33,10 +30,6 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
-function clamp(n: number, a: number, b: number) {
-  return Math.max(a, Math.min(b, n));
-}
-
 type StageMeta = {
   stageIndex: 1 | 2 | 3 | 4;
   ruTitle: string;
@@ -53,28 +46,28 @@ const STAGES: StageMeta[] = [
     stageIndex: 1,
     ruTitle: 'ЭТАП I · ИСТОКИ',
     enTitle: 'STAGE I · ORIGINS',
-    ruTheme: 'Внутренние ориентиры, импульсы и первые опоры.',
-    enTheme: 'Inner orientation, impulses, first supports.',
+    ruTheme: 'Внутренние ориентиры, опоры и первые решения.',
+    enTheme: 'Inner orientation, supports, first decisions.',
     symbolNameRu: 'Компас',
     symbolNameEn: 'Compass',
     symbolKind: 'compass',
   },
   {
     stageIndex: 2,
-    ruTitle: 'ЭТАП II · СВЯЗИ И НАПРЯЖЕНИЕ',
-    enTitle: 'STAGE II · RELATIONSHIPS & TENSION',
-    ruTheme: 'Близость, границы, конфликты и ваша «тень».',
-    enTheme: 'Intimacy, boundaries, conflict, and your “shadow”.',
+    ruTitle: 'ЭТАП II · ОТНОШЕНИЯ',
+    enTitle: 'STAGE II · RELATIONSHIPS',
+    ruTheme: 'Близость, границы, конфликт и поддержка.',
+    enTheme: 'Closeness, boundaries, conflict, support.',
     symbolNameRu: 'Узел',
     symbolNameEn: 'Knot',
     symbolKind: 'knot',
   },
   {
     stageIndex: 3,
-    ruTitle: 'ЭТАП III · СМЫСЛ И ВРЕМЯ',
-    enTitle: 'STAGE III · MEANING & TIME',
-    ruTheme: 'Ценности, перспектива, время и след.',
-    enTheme: 'Values, perspective, time, and legacy.',
+    ruTitle: 'ЭТАП III · СМЫСЛ',
+    enTitle: 'STAGE III · MEANING',
+    ruTheme: 'Ценности, время, мечты и след.',
+    enTheme: 'Values, time, dreams, legacy.',
     symbolNameRu: 'Круг',
     symbolNameEn: 'Circle',
     symbolKind: 'circle',
@@ -83,8 +76,8 @@ const STAGES: StageMeta[] = [
     stageIndex: 4,
     ruTitle: 'ЭТАП IV · ИТОГ',
     enTitle: 'STAGE IV · INTEGRATION',
-    ruTheme: 'Ответственность, принятие и формула жизни.',
-    enTheme: 'Responsibility, acceptance, and your life formula.',
+    ruTheme: 'Принятие, ответственность и формула жизни.',
+    enTheme: 'Acceptance, responsibility, life formula.',
     symbolNameRu: 'Знак',
     symbolNameEn: 'Mark',
     symbolKind: 'formula',
@@ -183,38 +176,16 @@ function SymbolCard({ kind }: { kind: StageMeta['symbolKind'] }) {
     );
   }
 
-  // formula
   return (
     <div style={commonWrap}>
       <svg viewBox="0 0 200 200" style={svgStyle}>
-        <path
-          d="M40 60 H160"
-          stroke="rgba(0,0,0,0.55)"
-          strokeWidth="8"
-          strokeLinecap="round"
-        />
-        <path
-          d="M40 100 H160"
-          stroke="rgba(0,0,0,0.35)"
-          strokeWidth="8"
-          strokeLinecap="round"
-        />
-        <path
-          d="M40 140 H160"
-          stroke="rgba(0,0,0,0.55)"
-          strokeWidth="8"
-          strokeLinecap="round"
-        />
+        <path d="M40 60 H160" stroke="rgba(0,0,0,0.55)" strokeWidth="8" strokeLinecap="round" />
+        <path d="M40 100 H160" stroke="rgba(0,0,0,0.35)" strokeWidth="8" strokeLinecap="round" />
+        <path d="M40 140 H160" stroke="rgba(0,0,0,0.55)" strokeWidth="8" strokeLinecap="round" />
         <circle cx="70" cy="60" r="10" fill="rgba(255,255,255,0.18)" stroke="rgba(0,0,0,0.35)" strokeWidth="2" />
         <circle cx="130" cy="100" r="10" fill="rgba(255,255,255,0.18)" stroke="rgba(0,0,0,0.35)" strokeWidth="2" />
         <circle cx="90" cy="140" r="10" fill="rgba(255,255,255,0.18)" stroke="rgba(0,0,0,0.35)" strokeWidth="2" />
-        <path
-          d="M62 60 L110 100 L90 140"
-          stroke="rgba(255,255,255,0.18)"
-          strokeWidth="6"
-          strokeLinecap="round"
-          fill="none"
-        />
+        <path d="M62 60 L110 100 L90 140" stroke="rgba(255,255,255,0.18)" strokeWidth="6" strokeLinecap="round" fill="none" />
       </svg>
     </div>
   );
@@ -222,188 +193,55 @@ function SymbolCard({ kind }: { kind: StageMeta['symbolKind'] }) {
 
 function stageStats(stageQuestions: Question[], answers: Record<number, string>) {
   let answered = 0;
-  let chars = 0;
   let words = 0;
 
   for (const q of stageQuestions) {
     const t = (answers[q.id] ?? '').trim();
     if (t.length > 0) answered++;
-    chars += t.length;
     words += t.split(/\s+/).filter(Boolean).length;
   }
 
   const avgWords = answered > 0 ? words / answered : 0;
-  const depth =
-    avgWords >= 60 ? 'deep' :
-    avgWords >= 30 ? 'medium' :
-    avgWords >= 10 ? 'light' : 'empty';
-
-  return { answered, chars, words, avgWords, depth };
+  return { answered, avgWords };
 }
 
 function buildStageSummaryText(meta: StageMeta, stats: ReturnType<typeof stageStats>, lang: Lang) {
   const pct = Math.round((stats.answered / 10) * 100);
-  const depthRu =
-    stats.depth === 'deep' ? 'подробно и глубоко' :
-    stats.depth === 'medium' ? 'развёрнуто' :
-    stats.depth === 'light' ? 'коротко, но по делу' : 'пока мало';
-
-  const depthEn =
-    stats.depth === 'deep' ? 'deep and detailed' :
-    stats.depth === 'medium' ? 'thoughtful and expanded' :
-    stats.depth === 'light' ? 'short but meaningful' : 'still minimal';
 
   if (lang === 'ru') {
     return [
-      `Вы завершили ${meta.ruTitle.toLowerCase()}.`,
-      `Заполнено: ${stats.answered}/10 (${pct}%). По стилю — ${depthRu}.`,
-      `Главная тема этапа: ${meta.ruTheme}`,
-      `Промежуточный смысл: вы формируете «ось» — то, на что опираетесь, когда мир шумит. Этот этап не про идеальность, а про честность.`,
-      `Дальше будет следующий слой — связи, напряжение и границы. Но уже сейчас видно: внутри есть направление.`
+      `Вы закончили ${meta.ruTitle.toLowerCase()}.`,
+      `Заполнено: ${stats.answered}/10 (${pct}%).`,
+      `Тема этапа: ${meta.ruTheme}`,
+      `Дальше — следующий этап. Но уже сейчас у вас появляется “каркас” будущего философского портрета.`,
     ];
   }
 
   return [
-    `You completed ${meta.enTitle.toLowerCase()}.`,
-    `Progress: ${stats.answered}/10 (${pct}%). Your style is ${depthEn}.`,
-    `Core theme: ${meta.enTheme}`,
-    `Interim meaning: you are shaping an “inner axis”—what you lean on when the world gets loud. This stage is not about being perfect; it’s about being honest.`,
-    `Next comes the next layer—relationships, tension, and boundaries. But already: there is a direction inside you.`
+    `You finished ${meta.enTitle.toLowerCase()}.`,
+    `Completed: ${stats.answered}/10 (${pct}%).`,
+    `Stage theme: ${meta.enTheme}`,
+    `Next comes the next stage. But already you are building the frame of your final portrait.`,
   ];
 }
 
-function buildFinalPortraitPages(answers: Record<number, string>, lang: Lang) {
-  // ultra-simple heuristic: use totals to vary tone a bit
-  let totalWords = 0;
-  let filled = 0;
-  for (const q of QUESTIONS) {
-    const t = (answers[q.id] ?? '').trim();
-    if (t.length > 0) filled++;
-    totalWords += t.split(/\s+/).filter(Boolean).length;
-  }
-
-  const density = filled === 0 ? 0 : totalWords / filled;
-  const tone =
-    density >= 60 ? 'deep' :
-    density >= 30 ? 'solid' :
-    density >= 10 ? 'brief' : 'empty';
-
+function buildFinalPortraitPages(lang: Lang) {
   if (lang === 'ru') {
-    const intro =
-      tone === 'deep'
-        ? 'Ваши ответы звучат как дневник человека, который умеет смотреть внутрь — без лишних оправданий.'
-        : tone === 'solid'
-          ? 'Ваши ответы дают цельную картину: вы видите себя и умеете называть важное.'
-          : tone === 'brief'
-            ? 'Ваши ответы короткие, но в них есть направление. Мы будем усиливать эту ясность дальше.'
-            : 'Пока ответов мало — но даже так видно, что вы начали путь честно.';
-
     return [
-      {
-        title: 'ФИНАЛ · ФИЛОСОФСКИЙ ПОРТРЕТ',
-        body: [
-          intro,
-          'Ниже — первый черновой портрет (пока без AI). Он будет становиться точнее по мере заполнения и донастройки.',
-        ],
-        footer: 'ПОРТРЕТ · 1/5',
-      },
-      {
-        title: 'ОСЬ ВАШЕЙ ЖИЗНИ',
-        body: [
-          'В ваших ответах повторяется один мотив: желание жить по внутреннему компасу, а не по шуму извне.',
-          'Это не означает спокойствие всегда. Это означает: вы цените выбор, в котором вы остаётесь собой.',
-          'Сила: внутренняя честность. Риск: перегруз ожиданиями к себе.',
-        ],
-        footer: 'ПОРТРЕТ · 2/5',
-      },
-      {
-        title: 'КАК ВЫ ВСТРЕЧАЕТЕ МИР',
-        body: [
-          'Вы одновременно ищете близость и оберегаете границы — как будто внутри есть тонкая настройка, которую легко сбить.',
-          'Конфликт для вас — не просто спор, а проверка ценностей. Поэтому он утомляет, но и многое проясняет.',
-          'Важная задача: отделять «мне больно» от «я должен защищаться».',
-        ],
-        footer: 'ПОРТРЕТ · 3/5',
-      },
-      {
-        title: 'ВРЕМЯ, СМЫСЛ, СЛЕД',
-        body: [
-          'Когда вы чувствуете смысл — время течёт иначе: оно становится плотным, собранным.',
-          'Вы хотите оставить след не демонстрацией, а качеством: в людях, в делах, в атмосфере рядом.',
-          'Это философия тихой силы: быть источником ясности, а не шума.',
-        ],
-        footer: 'ПОРТРЕТ · 4/5',
-      },
-      {
-        title: 'ФОРМУЛА',
-        body: [
-          'Главное — быть собой и не предавать внутренний компас.',
-          'Вторичное — удобство и чужие ожидания.',
-          'Лишнее — доказательства тем, кто всё равно не увидит.',
-          '',
-          'Дальше мы сделаем это точнее: добавим AI-текст и визуальный портрет по вашему стилю и ответам.',
-        ],
-        footer: 'ПОРТРЕТ · 5/5',
-      },
+      { title: 'ФИНАЛ · ФИЛОСОФСКИЙ ПОРТРЕТ', body: ['Это финальный раздел. Здесь будет ваш полный текстовый портрет.', 'Сейчас это шаблон — позже подключим AI и сделаем по вашим ответам.'], footer: 'ПОРТРЕТ · 1/5' },
+      { title: 'КТО ВЫ', body: ['Здесь будет сильное описание личности: как вы мыслите, что цените, как выбираете.'], footer: 'ПОРТРЕТ · 2/5' },
+      { title: 'КАК ВЫ ЖИВЁТЕ', body: ['Здесь будет то, как вы строите отношения, проходите трудности и восстанавливаетесь.'], footer: 'ПОРТРЕТ · 3/5' },
+      { title: 'ВАШ СМЫСЛ', body: ['Здесь будет смысловая часть: что вас ведёт, что для вас важно, какой след вы хотите оставить.'], footer: 'ПОРТРЕТ · 4/5' },
+      { title: 'ВАША ФОРМУЛА', body: ['Здесь будет итоговая “формула” из ваших ответов.', 'Ниже вы можете пройти опрос заново и улучшить портрет.'], footer: 'ПОРТРЕТ · 5/5' },
     ];
   }
 
-  const intro =
-    tone === 'deep'
-      ? 'Your answers read like the journal of someone who can look inward—without unnecessary excuses.'
-      : tone === 'solid'
-        ? 'Your answers form a coherent picture: you see yourself and can name what matters.'
-        : tone === 'brief'
-          ? 'Your answers are brief, but they carry direction. We will strengthen this clarity.'
-          : 'There are not many answers yet—but even so, you started the path honestly.';
-
   return [
-    {
-      title: 'FINAL · PHILOSOPHICAL PORTRAIT',
-      body: [
-        intro,
-        'Below is a first draft portrait (without AI for now). It will become more precise as you continue.',
-      ],
-      footer: 'PORTRAIT · 1/5',
-    },
-    {
-      title: 'YOUR LIFE AXIS',
-      body: [
-        'One motif repeats: the desire to live by an inner compass, not by external noise.',
-        'This does not mean constant calm. It means valuing choices where you remain yourself.',
-        'Strength: inner honesty. Risk: overloading yourself with expectations.',
-      ],
-      footer: 'PORTRAIT · 2/5',
-    },
-    {
-      title: 'HOW YOU MEET THE WORLD',
-      body: [
-        'You seek closeness yet protect boundaries—as if there is a delicate tuning inside you.',
-        'Conflict is not just disagreement; it is a test of values. It exhausts, but clarifies.',
-        'Key task: separate “I am hurt” from “I must defend”.',
-      ],
-      footer: 'PORTRAIT · 3/5',
-    },
-    {
-      title: 'TIME, MEANING, LEGACY',
-      body: [
-        'When you feel meaning, time changes: it becomes dense and focused.',
-        'You want legacy through quality—not performance: in people, work, and atmosphere.',
-        'This is quiet strength: becoming a source of clarity, not noise.',
-      ],
-      footer: 'PORTRAIT · 4/5',
-    },
-    {
-      title: 'FORMULA',
-      body: [
-        'Primary — stay true to your inner compass.',
-        'Secondary — comfort and other people’s expectations.',
-        'Unnecessary — proving yourself to those who will not see.',
-        '',
-        'Next we will make it sharper: AI text + a visual portrait based on your style and answers.',
-      ],
-      footer: 'PORTRAIT · 5/5',
-    },
+    { title: 'FINAL · PHILOSOPHICAL PORTRAIT', body: ['This is the final section. Your full text portrait will live here.', 'For now it’s a template—later we add AI based on your answers.'], footer: 'PORTRAIT · 1/5' },
+    { title: 'WHO YOU ARE', body: ['A strong personality description will appear here: how you think, what you value, how you choose.'], footer: 'PORTRAIT · 2/5' },
+    { title: 'HOW YOU LIVE', body: ['How you build relationships, face difficulties, and recover.'], footer: 'PORTRAIT · 3/5' },
+    { title: 'YOUR MEANING', body: ['Meaning layer: what guides you, what matters, what legacy you want.'], footer: 'PORTRAIT · 4/5' },
+    { title: 'YOUR FORMULA', body: ['Your final “formula” based on answers.', 'Below you can restart the quiz to refine the portrait.'], footer: 'PORTRAIT · 5/5' },
   ];
 }
 
@@ -411,13 +249,30 @@ export default function DynamicPage({ params }: PageProps) {
   const rawSlug = params.slug ?? '';
   const slug = decodeURIComponent(rawSlug);
 
-  // Hooks must be unconditional (always called)
   const [lang, setLang] = useState<Lang>('ru');
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [activeEditor, setActiveEditor] = useState<ActiveEditor>(null);
   const [draftText, setDraftText] = useState('');
   const [recognition, setRecognition] = useState<any | null>(null);
   const [isListening, setIsListening] = useState(false);
+
+  const resetAll = () => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      window.localStorage.removeItem('lv_answers_ru');
+      window.localStorage.removeItem('lv_answers_en');
+      window.localStorage.setItem('lv_last_page_book', '0');
+    } catch {}
+
+    setAnswers({});
+    setActiveEditor(null);
+    setDraftText('');
+    setIsListening(false);
+
+    // команда BookLayout: перейти на начало
+    window.dispatchEvent(new CustomEvent('lv:resetBook'));
+  };
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -457,10 +312,7 @@ export default function DynamicPage({ params }: PageProps) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const SR =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
-
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) return setRecognition(null);
 
     const rec = new SR();
@@ -476,9 +328,7 @@ export default function DynamicPage({ params }: PageProps) {
     try {
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript as string;
-        setDraftText(prev =>
-          prev ? prev + (prev.endsWith(' ') ? '' : ' ') + transcript : transcript
-        );
+        setDraftText(prev => (prev ? prev + (prev.endsWith(' ') ? '' : ' ') + transcript : transcript));
       };
       recognition.onerror = () => setIsListening(false);
       recognition.onend = () => setIsListening(false);
@@ -509,13 +359,10 @@ export default function DynamicPage({ params }: PageProps) {
 
   const doneCount = useMemo(() => {
     let c = 0;
-    for (const q of QUESTIONS) {
-      if ((answers[q.id] ?? '').trim().length > 0) c++;
-    }
+    for (const q of QUESTIONS) if ((answers[q.id] ?? '').trim().length > 0) c++;
     return c;
   }, [answers]);
 
-  // not /book -> static spread
   if (slug !== 'book') {
     return (
       <SiteLayout>
@@ -525,9 +372,7 @@ export default function DynamicPage({ params }: PageProps) {
             <div className="lv-book-open-page lv-book-open-page--left" />
             <article className="lv-book-open-page lv-book-open-page--right">
               <h1 className="lv-book-heading">Страница:</h1>
-              <p className="lv-book-body">
-                Это тестовый маршрут /{slug || '…'}.
-              </p>
+              <p className="lv-book-body">Это тестовый маршрут /{slug || '…'}.</p>
             </article>
             <div className="lv-book-open-spine" />
           </div>
@@ -536,7 +381,6 @@ export default function DynamicPage({ params }: PageProps) {
     );
   }
 
-  // Book pages
   const pageBaseStyle: React.CSSProperties = {
     display: 'flex',
     flexDirection: 'column',
@@ -549,15 +393,13 @@ export default function DynamicPage({ params }: PageProps) {
       <div>
         <div className="lv-page-header">
           <div className="lv-page-subtitle">LIBER VITAE</div>
-          <div className="lv-page-title">
-            {lang === 'ru' ? 'Книга жизни' : 'Book of Life'}
-          </div>
+          <div className="lv-page-title">{lang === 'ru' ? 'Книга жизни' : 'Book of Life'}</div>
         </div>
 
         <div className="lv-page-body">
           {lang === 'ru'
-            ? 'Книга состоит из 4 этапов. После каждого — промежуточный результат и символ. Это удерживает фокус и даёт чувство прогресса.'
-            : 'The book has 4 stages. After each one you get a mini result and a symbol. This keeps focus and gives a sense of progress.'}
+            ? 'Книга состоит из 4 этапов по 10 вопросов. После каждого этапа — краткий итог и символ.'
+            : 'The book has 4 stages of 10 questions. After each stage you get a short summary and a symbol.'}
         </div>
 
         <div style={{ marginTop: 12, fontSize: '0.9rem', opacity: 0.9 }}>
@@ -565,17 +407,12 @@ export default function DynamicPage({ params }: PageProps) {
         </div>
       </div>
 
-      <div className="lv-page-footer">
-        {lang === 'ru' ? 'СТР. 1 · ВВЕДЕНИЕ' : 'PAGE 1 · INTRO'}
-      </div>
+      <div className="lv-page-footer">{lang === 'ru' ? 'СТР. 1 · ВВЕДЕНИЕ' : 'PAGE 1 · INTRO'}</div>
     </div>
   );
 
-  const stages = chunk(QUESTIONS, 10); // 4 chunks
-
+  const stages = chunk(QUESTIONS, 10);
   const pages: React.ReactNode[] = [cover];
-
-  // build question pages + stage pages
   let pageNumber = 2;
 
   for (let s = 0; s < stages.length; s++) {
@@ -583,7 +420,6 @@ export default function DynamicPage({ params }: PageProps) {
     const meta = STAGES[s];
     const stageQuestions = stages[s];
 
-    // 10 questions
     for (const q of stageQuestions) {
       const answerText = answers[q.id] ?? '';
       const footer =
@@ -604,9 +440,7 @@ export default function DynamicPage({ params }: PageProps) {
             </div>
 
             <div className="lv-page-answer" style={{ marginTop: 10, marginBottom: 18 }}>
-              <div className="lv-page-answer-label">
-                {lang === 'ru' ? 'Ваш ответ' : 'Your answer'}
-              </div>
+              <div className="lv-page-answer-label">{lang === 'ru' ? 'Ваш ответ' : 'Your answer'}</div>
 
               <div style={{ marginTop: 6, display: 'flex', justifyContent: 'center' }}>
                 <div
@@ -617,8 +451,7 @@ export default function DynamicPage({ params }: PageProps) {
                     minHeight: 90,
                     borderRadius: 20,
                     border: '1px solid rgba(0,0,0,0.28)',
-                    boxShadow:
-                      '0 10px 24px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.14)',
+                    boxShadow: '0 10px 24px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.14)',
                     background: 'rgba(255,255,255,0.03)',
                     padding: '10px 16px',
                     fontSize: '0.96rem',
@@ -645,9 +478,9 @@ export default function DynamicPage({ params }: PageProps) {
       pageNumber++;
     }
 
-    // Stage summary page
+    // Итог этапа
     const stats = stageStats(stageQuestions, answers);
-    const summaryLines = buildStageSummaryText(meta, stats, lang);
+    const lines = buildStageSummaryText(meta, stats, lang);
     const stageFooter =
       lang === 'ru'
         ? `СТР. ${pageNumber} · ИТОГ ЭТАПА ${toRoman(stageIndex)}`
@@ -657,24 +490,34 @@ export default function DynamicPage({ params }: PageProps) {
       <div className="lv-page" key={`stage-${stageIndex}-summary`} style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
-            <div className="lv-page-subtitle">
-              {lang === 'ru' ? 'Промежуточный результат' : 'Interim result'}
-            </div>
+            <div className="lv-page-subtitle">{lang === 'ru' ? 'Промежуточный результат' : 'Interim result'}</div>
             <div className="lv-page-title">{lang === 'ru' ? meta.ruTitle : meta.enTitle}</div>
           </div>
 
           <div className="lv-page-body" style={{ fontSize: '1.02rem', lineHeight: 1.55 }}>
-            {summaryLines.map((p, i) => (
+            {lines.map((p, i) => (
               <p key={i} style={{ margin: i === 0 ? '8px 0 10px' : '10px 0' }}>
                 {p}
               </p>
             ))}
-          </div>
 
-          <div style={{ marginTop: 10, opacity: 0.85, fontSize: '0.9rem' }}>
-            {lang === 'ru'
-              ? `Заполнено в этом этапе: ${stats.answered}/10`
-              : `Filled in this stage: ${stats.answered}/10`}
+            {/* ✅ Кнопка “пройти заново” после подведения итога */}
+            <div style={{ marginTop: 14 }}>
+              <button
+                type="button"
+                onClick={resetAll}
+                style={{
+                  borderRadius: 999,
+                  padding: '8px 14px',
+                  border: 'none',
+                  background: 'linear-gradient(120deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))',
+                  color: '#fff',
+                  fontWeight: 600,
+                }}
+              >
+                {lang === 'ru' ? 'Пройти заново' : 'Start over'}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -684,7 +527,7 @@ export default function DynamicPage({ params }: PageProps) {
 
     pageNumber++;
 
-    // Stage symbol page
+    // Символ этапа
     const symbolFooter =
       lang === 'ru'
         ? `СТР. ${pageNumber} · СИМВОЛ ЭТАПА ${toRoman(stageIndex)}`
@@ -694,21 +537,12 @@ export default function DynamicPage({ params }: PageProps) {
       <div className="lv-page" key={`stage-${stageIndex}-symbol`} style={pageBaseStyle}>
         <div>
           <div className="lv-page-header">
-            <div className="lv-page-subtitle">
-              {lang === 'ru' ? 'Символ этапа' : 'Stage symbol'}
-            </div>
-            <div className="lv-page-title">
-              {lang === 'ru' ? meta.symbolNameRu : meta.symbolNameEn}
-            </div>
+            <div className="lv-page-subtitle">{lang === 'ru' ? 'Символ этапа' : 'Stage symbol'}</div>
+            <div className="lv-page-title">{lang === 'ru' ? meta.symbolNameRu : meta.symbolNameEn}</div>
           </div>
 
           <div className="lv-page-body" style={{ marginTop: 10 }}>
             <SymbolCard kind={meta.symbolKind} />
-            <div style={{ width: '92%', margin: '12px auto 0', opacity: 0.88, fontSize: '0.95rem', lineHeight: 1.45 }}>
-              {lang === 'ru'
-                ? `Этот символ — «сжатый образ» этапа. Он будет влиять на финальный портрет и визуальную генерацию позже.`
-                : `This symbol is a compressed image of the stage. It will influence the final portrait and later visual generation.`}
-            </div>
           </div>
         </div>
 
@@ -718,9 +552,8 @@ export default function DynamicPage({ params }: PageProps) {
 
     pageNumber++;
 
-    // After stage 4, add final portrait pages (5 pages)
     if (stageIndex === 4) {
-      const portrait = buildFinalPortraitPages(answers, lang);
+      const portrait = buildFinalPortraitPages(lang);
       for (let i = 0; i < portrait.length; i++) {
         const p = portrait[i];
         const footer =
@@ -742,6 +575,26 @@ export default function DynamicPage({ params }: PageProps) {
                     {t}
                   </p>
                 ))}
+
+                {/* ✅ На финале тоже “пройти заново” */}
+                {i === portrait.length - 1 && (
+                  <div style={{ marginTop: 14 }}>
+                    <button
+                      type="button"
+                      onClick={resetAll}
+                      style={{
+                        borderRadius: 999,
+                        padding: '8px 14px',
+                        border: 'none',
+                        background: 'linear-gradient(120deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))',
+                        color: '#fff',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {lang === 'ru' ? 'Пройти заново' : 'Start over'}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -756,7 +609,7 @@ export default function DynamicPage({ params }: PageProps) {
 
   return (
     <SiteLayout>
-      {/* RU/EN + прогресс */}
+      {/* Верхняя панель: прогресс + язык + “Начать сначала” */}
       <div
         style={{
           position: 'fixed',
@@ -766,6 +619,8 @@ export default function DynamicPage({ params }: PageProps) {
           display: 'flex',
           gap: 8,
           alignItems: 'center',
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end',
         }}
       >
         <div
@@ -809,11 +664,27 @@ export default function DynamicPage({ params }: PageProps) {
         >
           EN
         </button>
+
+        <button
+          type="button"
+          onClick={resetAll}
+          style={{
+            padding: '6px 12px',
+            borderRadius: 999,
+            border: '1px solid rgba(255,255,255,0.25)',
+            background: 'rgba(0,0,0,0.35)',
+            color: 'rgba(255,255,255,0.92)',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+          }}
+        >
+          {lang === 'ru' ? 'Начать сначала' : 'Start from beginning'}
+        </button>
       </div>
 
       <BookLayout pages={pages} />
 
-      {/* Модалка ввода (клавиатура/голос) */}
+      {/* Модалка ввода */}
       {activeEditor != null && (
         <div
           style={{
@@ -840,9 +711,7 @@ export default function DynamicPage({ params }: PageProps) {
             }}
           >
             <div style={{ fontSize: '0.8rem', letterSpacing: '0.15em', opacity: 0.8, marginBottom: 6 }}>
-              {lang === 'ru'
-                ? `ВОПРОС ${toRoman(activeEditor)}`
-                : `QUESTION ${toRoman(activeEditor)}`}
+              {lang === 'ru' ? `ВОПРОС ${toRoman(activeEditor)}` : `QUESTION ${toRoman(activeEditor)}`}
             </div>
 
             <textarea
@@ -873,9 +742,7 @@ export default function DynamicPage({ params }: PageProps) {
                   color: '#fff',
                 }}
               >
-                {lang === 'ru'
-                  ? (isListening ? '🎙 Слушаю…' : '🎙 Наговорить')
-                  : (isListening ? '🎙 Listening…' : '🎙 Dictate')}
+                {lang === 'ru' ? (isListening ? '🎙 Слушаю…' : '🎙 Наговорить') : (isListening ? '🎙 Listening…' : '🎙 Dictate')}
               </button>
 
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
@@ -911,8 +778,8 @@ export default function DynamicPage({ params }: PageProps) {
 
             <div style={{ marginTop: 10, opacity: 0.75, fontSize: '0.85rem', lineHeight: 1.35 }}>
               {lang === 'ru'
-                ? 'Подсказка: после каждого этапа (10 вопросов) вы увидите итог и символ. Это и есть «результат в процессе».'
-                : 'Tip: after each stage (10 questions) you will see an interim result and a symbol. That is the “progress reward”.'}
+                ? 'Можно писать с клавиатуры или нажать “Наговорить”.'
+                : 'You can type or press “Dictate”.'}
             </div>
           </div>
         </div>
