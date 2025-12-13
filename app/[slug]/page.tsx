@@ -256,6 +256,40 @@ export default function DynamicPage({ params }: PageProps) {
   const [recognition, setRecognition] = useState<any | null>(null);
   const [isListening, setIsListening] = useState(false);
 
+  // ✅ Привязка панели к низу шапки (header)
+  const [headerBottomPx, setHeaderBottomPx] = useState<number>(0);
+
+  const measureHeaderBottom = React.useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const header = document.querySelector('header');
+    if (!header) {
+      setHeaderBottomPx(0);
+      return;
+    }
+    const rect = (header as HTMLElement).getBoundingClientRect();
+    setHeaderBottomPx(Math.max(0, Math.round(rect.bottom)));
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // первичное измерение
+    requestAnimationFrame(measureHeaderBottom);
+
+    const onResize = () => requestAnimationFrame(measureHeaderBottom);
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+
+    // на всякий — после загрузки шрифтов/стилей
+    const t = window.setTimeout(() => requestAnimationFrame(measureHeaderBottom), 250);
+
+    return () => {
+      window.clearTimeout(t);
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('orientationchange', onResize);
+    };
+  }, [measureHeaderBottom]);
+
   const resetAll = () => {
     if (typeof window === 'undefined') return;
 
@@ -602,84 +636,67 @@ export default function DynamicPage({ params }: PageProps) {
     }
   }
 
-  const remaining = Math.max(0, 40 - doneCount);
+  // ✅ Панель под шапкой (без Done/Left)
+  const panelTop = headerBottomPx > 0
+    ? headerBottomPx + 8
+    : 8;
 
   return (
     <SiteLayout>
-      {/* ✅ Верхняя панель (опущена ниже + одна кнопка языка) */}
       <div
         style={{
           position: 'fixed',
-          top: 'calc(env(safe-area-inset-top, 0px) + 64px)',
+          top: panelTop,
           right: 12,
           zIndex: 60,
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end',
           gap: 8,
+          alignItems: 'center',
           pointerEvents: 'auto',
+          maxWidth: 'calc(100vw - 24px)',
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end',
         }}
       >
-        <div
+        <button
+          type="button"
+          onClick={() => setLang(prev => (prev === 'ru' ? 'en' : 'ru'))}
           style={{
-            padding: '7px 10px',
+            padding: '7px 12px',
             borderRadius: 999,
-            background: 'rgba(0,0,0,0.50)',
+            border: '1px solid rgba(255,255,255,0.25)',
+            background: 'rgba(0,0,0,0.35)',
             color: 'rgba(255,255,255,0.92)',
             fontSize: '0.82rem',
-            maxWidth: 240,
-            textAlign: 'right',
+            fontWeight: 600,
             backdropFilter: 'blur(6px)',
             WebkitBackdropFilter: 'blur(6px)',
           }}
         >
-          {lang === 'ru'
-            ? `Готово ${doneCount}/40 · осталось ${remaining}`
-            : `Done ${doneCount}/40 · left ${remaining}`}
-        </div>
+          {`Language: ${lang.toUpperCase()} ↔ ${(lang === 'ru' ? 'EN' : 'RU')}`}
+        </button>
 
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button
-            type="button"
-            onClick={() => setLang(prev => (prev === 'ru' ? 'en' : 'ru'))}
-            style={{
-              padding: '7px 12px',
-              borderRadius: 999,
-              border: '1px solid rgba(255,255,255,0.25)',
-              background: 'rgba(0,0,0,0.35)',
-              color: 'rgba(255,255,255,0.92)',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              backdropFilter: 'blur(6px)',
-              WebkitBackdropFilter: 'blur(6px)',
-            }}
-          >
-            {`Language: ${lang.toUpperCase()} ↔ ${(lang === 'ru' ? 'EN' : 'RU')}`}
-          </button>
-
-          <button
-            type="button"
-            onClick={resetAll}
-            style={{
-              padding: '7px 12px',
-              borderRadius: 999,
-              border: '1px solid rgba(255,255,255,0.25)',
-              background: 'rgba(0,0,0,0.35)',
-              color: 'rgba(255,255,255,0.92)',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              backdropFilter: 'blur(6px)',
-              WebkitBackdropFilter: 'blur(6px)',
-            }}
-          >
-            {lang === 'ru' ? 'Начать сначала' : 'Start from beginning'}
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={resetAll}
+          style={{
+            padding: '7px 12px',
+            borderRadius: 999,
+            border: '1px solid rgba(255,255,255,0.25)',
+            background: 'rgba(0,0,0,0.35)',
+            color: 'rgba(255,255,255,0.92)',
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+          }}
+        >
+          {lang === 'ru' ? 'Начать сначала' : 'Start from beginning'}
+        </button>
       </div>
 
       <BookLayout pages={pages} />
 
-      {/* Модалка ввода */}
       {activeEditor != null && (
         <div
           style={{
