@@ -18,12 +18,12 @@ const HTMLFlipBook = dynamic(
   { ssr: false }
 ) as any;
 
+// ключ для сохранения текущей страницы
 const STORAGE_KEY = 'lv_last_page_book';
 
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const bookRef = React.useRef<any>(null);
   const [current, setCurrent] = React.useState(0);
-
   const total = pages.length;
 
   const touchStartX = React.useRef(0);
@@ -105,7 +105,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     saved = Math.max(0, Math.min(saved, Math.max(0, total - 1)));
 
     // важно: подождать, пока flipbook реально инициализируется
-    // делаем несколько попыток, но мягко и без бесконечного цикла
     let tries = 0;
     const maxTries = 20;
 
@@ -145,13 +144,14 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     >
       <div className="lv-book-flip-wrapper">
         <HTMLFlipBook
-          width={480}
-          height={640}
+          // делаем книгу немного выше и крупнее
+          width={500}
+          height={720}
           size="stretch"
           minWidth={320}
           maxWidth={900}
           minHeight={480}
-          maxHeight={1000}
+          maxHeight={1100}
           maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true}
