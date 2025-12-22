@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SiteLayout } from '../../src/features/shell/components/SiteLayout';
 import { BookLayout } from '../../src/features/shell/components/BookLayout';
 import { QUESTIONS, type Lang, type Question } from '../../src/features/shell/components/questions';
@@ -256,8 +256,11 @@ export default function DynamicPage({ params }: PageProps) {
   const [recognition, setRecognition] = useState<any | null>(null);
   const [isListening, setIsListening] = useState(false);
 
-  // ✅ Привязка панели к низу шапки (header)
   const [headerBottomPx, setHeaderBottomPx] = useState<number>(0);
+
+  // ✅ Меню языков (скрыто, открывается по кнопке 🌐)
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const langMenuRef = useRef<HTMLDivElement | null>(null);
 
   const measureHeaderBottom = React.useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -273,22 +276,44 @@ export default function DynamicPage({ params }: PageProps) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // первичное измерение
     requestAnimationFrame(measureHeaderBottom);
 
     const onResize = () => requestAnimationFrame(measureHeaderBottom);
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
 
-    // на всякий — после загрузки шрифтов/стилей
+    const onScroll = () => requestAnimationFrame(measureHeaderBottom);
+    window.addEventListener('scroll', onScroll, { passive: true });
+
     const t = window.setTimeout(() => requestAnimationFrame(measureHeaderBottom), 250);
 
     return () => {
       window.clearTimeout(t);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('orientationchange', onResize);
+      window.removeEventListener('scroll', onScroll as any);
     };
   }, [measureHeaderBottom]);
+
+  useEffect(() => {
+    if (!langMenuOpen) return;
+
+    const onDocDown = (e: MouseEvent | TouchEvent) => {
+      const el = langMenuRef.current;
+      if (!el) return;
+      const target = e.target as Node | null;
+      if (target && el.contains(target)) return;
+      setLangMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', onDocDown);
+    document.addEventListener('touchstart', onDocDown, { passive: true });
+
+    return () => {
+      document.removeEventListener('mousedown', onDocDown);
+      document.removeEventListener('touchstart', onDocDown as any);
+    };
+  }, [langMenuOpen]);
 
   const resetAll = () => {
     if (typeof window === 'undefined') return;
@@ -636,13 +661,22 @@ export default function DynamicPage({ params }: PageProps) {
     }
   }
 
-  // ✅ Панель под шапкой (без Done/Left)
-  const panelTop = headerBottomPx > 0
-    ? headerBottomPx + 8
-    : 8;
+  const panelTop = (headerBottomPx > 0 ? headerBottomPx : 0) + 8;
+
+  const pillStyle: React.CSSProperties = {
+    borderRadius: 999,
+    border: '1px solid rgba(255,255,255,0.25)',
+    background: 'rgba(0,0,0,0.35)',
+    color: 'rgba(255,255,255,0.92)',
+    fontSize: '0.82rem',
+    fontWeight: 700,
+    backdropFilter: 'blur(6px)',
+    WebkitBackdropFilter: 'blur(6px)',
+  };
 
   return (
     <SiteLayout>
+      {/* ✅ Верхняя панель: маленькая 🌐 + Start */}
       <div
         style={{
           position: 'fixed',
@@ -653,42 +687,94 @@ export default function DynamicPage({ params }: PageProps) {
           gap: 8,
           alignItems: 'center',
           pointerEvents: 'auto',
-          maxWidth: 'calc(100vw - 24px)',
-          flexWrap: 'wrap',
-          justifyContent: 'flex-end',
         }}
       >
-        <button
-          type="button"
-          onClick={() => setLang(prev => (prev === 'ru' ? 'en' : 'ru'))}
-          style={{
-            padding: '7px 12px',
-            borderRadius: 999,
-            border: '1px solid rgba(255,255,255,0.25)',
-            background: 'rgba(0,0,0,0.35)',
-            color: 'rgba(255,255,255,0.92)',
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-          }}
-        >
-          {`Language: ${lang.toUpperCase()} ↔ ${(lang === 'ru' ? 'EN' : 'RU')}`}
-        </button>
+        <div style={{ position: 'relative' }} ref={langMenuRef}>
+          <button
+            type="button"
+            onClick={() => setLangMenuOpen(v => !v)}
+            aria-label="Language"
+            style={{
+              ...pillStyle,
+              width: 40,
+              height: 32,
+              padding: 0,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 800,
+            }}
+          >
+            🌐
+          </button>
+
+          {langMenuOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 40,
+                right: 0,
+                minWidth: 140,
+                borderRadius: 14,
+                border: '1px solid rgba(255,255,255,0.18)',
+                background: 'rgba(0,0,0,0.55)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                boxShadow: '0 14px 30px rgba(0,0,0,0.45)',
+                padding: 6,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setLang('en');
+                  setLangMenuOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 10px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: lang === 'en' ? 'rgba(255,255,255,0.14)' : 'transparent',
+                  color: 'rgba(255,255,255,0.92)',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                }}
+              >
+                English
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setLang('ru');
+                  setLangMenuOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '8px 10px',
+                  borderRadius: 10,
+                  border: 'none',
+                  background: lang === 'ru' ? 'rgba(255,255,255,0.14)' : 'transparent',
+                  color: 'rgba(255,255,255,0.92)',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                }}
+              >
+                Русский
+              </button>
+            </div>
+          )}
+        </div>
 
         <button
           type="button"
           onClick={resetAll}
           style={{
+            ...pillStyle,
             padding: '7px 12px',
-            borderRadius: 999,
-            border: '1px solid rgba(255,255,255,0.25)',
-            background: 'rgba(0,0,0,0.35)',
-            color: 'rgba(255,255,255,0.92)',
-            fontSize: '0.82rem',
-            fontWeight: 700,
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
           }}
         >
           {lang === 'ru' ? 'Начать сначала' : 'Start from beginning'}
@@ -697,6 +783,7 @@ export default function DynamicPage({ params }: PageProps) {
 
       <BookLayout pages={pages} />
 
+      {/* Модалка ввода */}
       {activeEditor != null && (
         <div
           style={{
