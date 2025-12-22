@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 
 const LANG_KEY = 'lv_lang';
+const STORAGE_PAGE_KEY = 'lv_last_page_book';
 
 export const SiteHeader: React.FC = () => {
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -13,8 +14,8 @@ export const SiteHeader: React.FC = () => {
     const onDown = (e: MouseEvent | TouchEvent) => {
       const el = menuRef.current;
       if (!el) return;
-      const target = e.target as Node | null;
-      if (target && el.contains(target)) return;
+      const t = e.target as Node | null;
+      if (t && el.contains(t)) return;
       setMenuOpen(false);
     };
 
@@ -31,26 +32,26 @@ export const SiteHeader: React.FC = () => {
     try {
       window.localStorage.setItem(LANG_KEY, lang);
     } catch {}
+    // без reload можно, но пока надёжнее так:
     window.location.reload();
   };
 
+  // ВАЖНО: никакого localStorage.clear() и никакого "всё очистить"
+  // Просто вернуть книгу на 1 страницу и попросить BookLayout перелистнуть на 0
+  const startFromBeginning = () => {
+    try {
+      window.localStorage.setItem(STORAGE_PAGE_KEY, '0');
+    } catch {}
+
+    // если есть ответы — можно очищать точечно (если ключ знаешь),
+    // но НЕ clear() — иначе ломается всё.
+    // try { window.localStorage.removeItem('lv_answers'); } catch {}
+
+    window.dispatchEvent(new Event('lv:resetBook'));
+  };
+
   return (
-    <header
-      className="lv-site-header"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 99999,
-        pointerEvents: 'auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 12,
-        padding: '10px 12px',
-      }}
-    >
+    <>
       <div className="lv-site-logo" style={{ userSelect: 'none' }}>
         LIBER VITAE
       </div>
@@ -60,6 +61,12 @@ export const SiteHeader: React.FC = () => {
           Новая книга
         </Link>
 
+        {/* Начать сначала — безопасно, без "всё пропало" */}
+        <button type="button" className="lv-button lv-button-ghost" onClick={startFromBeginning}>
+          Начать сначала
+        </button>
+
+        {/* Одна маленькая кнопка языков */}
         <div ref={menuRef} style={{ position: 'relative' }}>
           <button
             type="button"
@@ -127,6 +134,6 @@ export const SiteHeader: React.FC = () => {
           )}
         </div>
       </div>
-    </header>
+    </>
   );
 };
