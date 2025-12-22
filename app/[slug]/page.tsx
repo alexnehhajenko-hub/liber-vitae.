@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { SiteLayout } from '../../src/features/shell/components/SiteLayout';
 import { BookLayout } from '../../src/features/shell/components/BookLayout';
 import { QUESTIONS, type Lang, type Question } from '../../src/features/shell/components/questions';
@@ -193,16 +193,11 @@ function SymbolCard({ kind }: { kind: StageMeta['symbolKind'] }) {
 
 function stageStats(stageQuestions: Question[], answers: Record<number, string>) {
   let answered = 0;
-  let words = 0;
-
   for (const q of stageQuestions) {
     const t = (answers[q.id] ?? '').trim();
     if (t.length > 0) answered++;
-    words += t.split(/\s+/).filter(Boolean).length;
   }
-
-  const avgWords = answered > 0 ? words / answered : 0;
-  return { answered, avgWords };
+  return { answered };
 }
 
 function buildStageSummaryText(meta: StageMeta, stats: ReturnType<typeof stageStats>, lang: Lang) {
@@ -213,7 +208,6 @@ function buildStageSummaryText(meta: StageMeta, stats: ReturnType<typeof stageSt
       `Вы закончили ${meta.ruTitle.toLowerCase()}.`,
       `Заполнено: ${stats.answered}/10 (${pct}%).`,
       `Тема этапа: ${meta.ruTheme}`,
-      `Дальше — следующий этап. Но уже сейчас у вас появляется “каркас” будущего философского портрета.`,
     ];
   }
 
@@ -221,27 +215,26 @@ function buildStageSummaryText(meta: StageMeta, stats: ReturnType<typeof stageSt
     `You finished ${meta.enTitle.toLowerCase()}.`,
     `Completed: ${stats.answered}/10 (${pct}%).`,
     `Stage theme: ${meta.enTheme}`,
-    `Next comes the next stage. But already you are building the frame of your final portrait.`,
   ];
 }
 
 function buildFinalPortraitPages(lang: Lang) {
   if (lang === 'ru') {
     return [
-      { title: 'ФИНАЛ · ФИЛОСОФСКИЙ ПОРТРЕТ', body: ['Это финальный раздел. Здесь будет ваш полный текстовый портрет.', 'Сейчас это шаблон — позже подключим AI и сделаем по вашим ответам.'], footer: 'ПОРТРЕТ · 1/5' },
-      { title: 'КТО ВЫ', body: ['Здесь будет сильное описание личности: как вы мыслите, что цените, как выбираете.'], footer: 'ПОРТРЕТ · 2/5' },
-      { title: 'КАК ВЫ ЖИВЁТЕ', body: ['Здесь будет то, как вы строите отношения, проходите трудности и восстанавливаетесь.'], footer: 'ПОРТРЕТ · 3/5' },
-      { title: 'ВАШ СМЫСЛ', body: ['Здесь будет смысловая часть: что вас ведёт, что для вас важно, какой след вы хотите оставить.'], footer: 'ПОРТРЕТ · 4/5' },
-      { title: 'ВАША ФОРМУЛА', body: ['Здесь будет итоговая “формула” из ваших ответов.', 'Ниже вы можете пройти опрос заново и улучшить портрет.'], footer: 'ПОРТРЕТ · 5/5' },
+      { title: 'ФИНАЛ · ФИЛОСОФСКИЙ ПОРТРЕТ', body: ['Здесь будет ваш полный текстовый портрет (позже подключим AI).'], footer: 'ПОРТРЕТ · 1/5' },
+      { title: 'КТО ВЫ', body: ['Описание личности, ценностей и способа мыслить.'], footer: 'ПОРТРЕТ · 2/5' },
+      { title: 'КАК ВЫ ЖИВЁТЕ', body: ['Отношения, трудности, восстановление.'], footer: 'ПОРТРЕТ · 3/5' },
+      { title: 'ВАШ СМЫСЛ', body: ['То, что вас ведёт и что важно.'], footer: 'ПОРТРЕТ · 4/5' },
+      { title: 'ВАША ФОРМУЛА', body: ['Итоговая “формула” по ответам.'], footer: 'ПОРТРЕТ · 5/5' },
     ];
   }
 
   return [
-    { title: 'FINAL · PHILOSOPHICAL PORTRAIT', body: ['This is the final section. Your full text portrait will live here.', 'For now it’s a template—later we add AI based on your answers.'], footer: 'PORTRAIT · 1/5' },
-    { title: 'WHO YOU ARE', body: ['A strong personality description will appear here: how you think, what you value, how you choose.'], footer: 'PORTRAIT · 2/5' },
-    { title: 'HOW YOU LIVE', body: ['How you build relationships, face difficulties, and recover.'], footer: 'PORTRAIT · 3/5' },
-    { title: 'YOUR MEANING', body: ['Meaning layer: what guides you, what matters, what legacy you want.'], footer: 'PORTRAIT · 4/5' },
-    { title: 'YOUR FORMULA', body: ['Your final “formula” based on answers.', 'Below you can restart the quiz to refine the portrait.'], footer: 'PORTRAIT · 5/5' },
+    { title: 'FINAL · PHILOSOPHICAL PORTRAIT', body: ['Your full text portrait will be here (AI later).'], footer: 'PORTRAIT · 1/5' },
+    { title: 'WHO YOU ARE', body: ['Personality, values, thinking style.'], footer: 'PORTRAIT · 2/5' },
+    { title: 'HOW YOU LIVE', body: ['Relationships, hardship, recovery.'], footer: 'PORTRAIT · 3/5' },
+    { title: 'YOUR MEANING', body: ['What guides you and what matters.'], footer: 'PORTRAIT · 4/5' },
+    { title: 'YOUR FORMULA', body: ['Final “formula” from answers.'], footer: 'PORTRAIT · 5/5' },
   ];
 }
 
@@ -255,65 +248,6 @@ export default function DynamicPage({ params }: PageProps) {
   const [draftText, setDraftText] = useState('');
   const [recognition, setRecognition] = useState<any | null>(null);
   const [isListening, setIsListening] = useState(false);
-
-  const [headerBottomPx, setHeaderBottomPx] = useState<number>(0);
-
-  // ✅ Меню языков (скрыто, открывается по кнопке 🌐)
-  const [langMenuOpen, setLangMenuOpen] = useState(false);
-  const langMenuRef = useRef<HTMLDivElement | null>(null);
-
-  const measureHeaderBottom = React.useCallback(() => {
-    if (typeof window === 'undefined') return;
-    const header = document.querySelector('header');
-    if (!header) {
-      setHeaderBottomPx(0);
-      return;
-    }
-    const rect = (header as HTMLElement).getBoundingClientRect();
-    setHeaderBottomPx(Math.max(0, Math.round(rect.bottom)));
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    requestAnimationFrame(measureHeaderBottom);
-
-    const onResize = () => requestAnimationFrame(measureHeaderBottom);
-    window.addEventListener('resize', onResize);
-    window.addEventListener('orientationchange', onResize);
-
-    const onScroll = () => requestAnimationFrame(measureHeaderBottom);
-    window.addEventListener('scroll', onScroll, { passive: true });
-
-    const t = window.setTimeout(() => requestAnimationFrame(measureHeaderBottom), 250);
-
-    return () => {
-      window.clearTimeout(t);
-      window.removeEventListener('resize', onResize);
-      window.removeEventListener('orientationchange', onResize);
-      window.removeEventListener('scroll', onScroll as any);
-    };
-  }, [measureHeaderBottom]);
-
-  useEffect(() => {
-    if (!langMenuOpen) return;
-
-    const onDocDown = (e: MouseEvent | TouchEvent) => {
-      const el = langMenuRef.current;
-      if (!el) return;
-      const target = e.target as Node | null;
-      if (target && el.contains(target)) return;
-      setLangMenuOpen(false);
-    };
-
-    document.addEventListener('mousedown', onDocDown);
-    document.addEventListener('touchstart', onDocDown, { passive: true });
-
-    return () => {
-      document.removeEventListener('mousedown', onDocDown);
-      document.removeEventListener('touchstart', onDocDown as any);
-    };
-  }, [langMenuOpen]);
 
   const resetAll = () => {
     if (typeof window === 'undefined') return;
@@ -661,129 +595,10 @@ export default function DynamicPage({ params }: PageProps) {
     }
   }
 
-  const panelTop = (headerBottomPx > 0 ? headerBottomPx : 0) + 8;
-
-  const pillStyle: React.CSSProperties = {
-    borderRadius: 999,
-    border: '1px solid rgba(255,255,255,0.25)',
-    background: 'rgba(0,0,0,0.35)',
-    color: 'rgba(255,255,255,0.92)',
-    fontSize: '0.82rem',
-    fontWeight: 700,
-    backdropFilter: 'blur(6px)',
-    WebkitBackdropFilter: 'blur(6px)',
-  };
-
   return (
     <SiteLayout>
-      {/* ✅ Верхняя панель: маленькая 🌐 + Start */}
-      <div
-        style={{
-          position: 'fixed',
-          top: panelTop,
-          right: 12,
-          zIndex: 60,
-          display: 'flex',
-          gap: 8,
-          alignItems: 'center',
-          pointerEvents: 'auto',
-        }}
-      >
-        <div style={{ position: 'relative' }} ref={langMenuRef}>
-          <button
-            type="button"
-            onClick={() => setLangMenuOpen(v => !v)}
-            aria-label="Language"
-            style={{
-              ...pillStyle,
-              width: 40,
-              height: 32,
-              padding: 0,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 800,
-            }}
-          >
-            🌐
-          </button>
-
-          {langMenuOpen && (
-            <div
-              style={{
-                position: 'absolute',
-                top: 40,
-                right: 0,
-                minWidth: 140,
-                borderRadius: 14,
-                border: '1px solid rgba(255,255,255,0.18)',
-                background: 'rgba(0,0,0,0.55)',
-                backdropFilter: 'blur(10px)',
-                WebkitBackdropFilter: 'blur(10px)',
-                boxShadow: '0 14px 30px rgba(0,0,0,0.45)',
-                padding: 6,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  setLang('en');
-                  setLangMenuOpen(false);
-                }}
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '8px 10px',
-                  borderRadius: 10,
-                  border: 'none',
-                  background: lang === 'en' ? 'rgba(255,255,255,0.14)' : 'transparent',
-                  color: 'rgba(255,255,255,0.92)',
-                  fontSize: '0.9rem',
-                  fontWeight: 700,
-                }}
-              >
-                English
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setLang('ru');
-                  setLangMenuOpen(false);
-                }}
-                style={{
-                  width: '100%',
-                  textAlign: 'left',
-                  padding: '8px 10px',
-                  borderRadius: 10,
-                  border: 'none',
-                  background: lang === 'ru' ? 'rgba(255,255,255,0.14)' : 'transparent',
-                  color: 'rgba(255,255,255,0.92)',
-                  fontSize: '0.9rem',
-                  fontWeight: 700,
-                }}
-              >
-                Русский
-              </button>
-            </div>
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={resetAll}
-          style={{
-            ...pillStyle,
-            padding: '7px 12px',
-          }}
-        >
-          {lang === 'ru' ? 'Начать сначала' : 'Start from beginning'}
-        </button>
-      </div>
-
       <BookLayout pages={pages} />
 
-      {/* Модалка ввода */}
       {activeEditor != null && (
         <div
           style={{
