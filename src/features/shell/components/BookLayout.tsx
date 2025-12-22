@@ -8,16 +8,16 @@ type BookLayoutProps = {
 };
 
 type FlipEvent = {
-  data: number; // индекс текущей страницы
+  data: number;
 };
 
-// Динамический импорт, чтобы не ломать SSR
 const HTMLFlipBook = dynamic(
   () => import('react-pageflip').then((mod: any) => mod.default),
   { ssr: false }
 ) as any;
 
 const STORAGE_KEY = 'lv_last_page_book';
+const HEADER_SAFE_TOP = 56; // высота шапки, чтобы книгу поднять и не перекрывать
 
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const bookRef = React.useRef<any>(null);
@@ -58,37 +58,29 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     } catch {}
   }, []);
 
-  const handleInit = React.useCallback(
-    (e: any) => {
-      try {
-        flipApiRef.current = e?.pageFlip?.() ?? null;
-      } catch {
-        flipApiRef.current = null;
+  const handleInit = React.useCallback((e: any) => {
+    try {
+      flipApiRef.current = e?.pageFlip?.() ?? null;
+    } catch {
+      flipApiRef.current = null;
+    }
+
+    try {
+      if (!flipApiRef.current && bookRef.current?.pageFlip) {
+        flipApiRef.current = bookRef.current.pageFlip();
       }
+    } catch {}
 
-      // fallback
-      try {
-        if (!flipApiRef.current && bookRef.current?.pageFlip) {
-          flipApiRef.current = bookRef.current.pageFlip();
-        }
-      } catch {}
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const idx = raw ? Number(raw) : 0;
+      const safe = Number.isFinite(idx) ? Math.max(0, Math.min(idx, total - 1)) : 0;
+      requestAnimationFrame(() => safeFlipTo(safe));
+      setCurrent(safe);
+    } catch {}
+  }, [safeFlipTo, total]);
 
-      // restore last page
-      try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
-        const idx = raw ? Number(raw) : 0;
-        const safe = Number.isFinite(idx)
-          ? Math.max(0, Math.min(idx, total - 1))
-          : 0;
-
-        requestAnimationFrame(() => safeFlipTo(safe));
-        setCurrent(safe);
-      } catch {}
-    },
-    [safeFlipTo, total]
-  );
-
-  // reset from outside
+  // reset event (если где-то используете)
   React.useEffect(() => {
     const onReset = () => {
       try {
@@ -102,72 +94,29 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     return () => window.removeEventListener('lv:resetBook', onReset as any);
   }, [safeFlipTo]);
 
-  // ---- touch handling only on the clickable book area ----
-  const touchStartX = React.useRef(0);
-  const touchStartY = React.useRef(0);
-
-  const lockHorizontalSwipe = React.useCallback((lock: boolean) => {
-    if (typeof document === 'undefined') return;
-    const body = document.body;
-
-    if (lock) {
-      (body.style as any).overscrollBehaviorX = 'none';
-      (body.style as any).touchAction = 'pan-y';
-    } else {
-      (body.style as any).overscrollBehaviorX = '';
-      (body.style as any).touchAction = '';
-    }
-  }, []);
-
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    const t = e.touches[0];
-    touchStartX.current = t.clientX;
-    touchStartY.current = t.clientY;
-    lockHorizontalSwipe(true);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    const t = e.touches[0];
-    const dx = Math.abs(t.clientX - touchStartX.current);
-    const dy = Math.abs(t.clientY - touchStartY.current);
-
-    if (dx > dy) e.preventDefault();
-  };
-
-  const handleTouchEnd = () => lockHorizontalSwipe(false);
-
-  React.useEffect(() => {
-    return () => lockHorizontalSwipe(false);
-  }, [lockHorizontalSwipe]);
-
+  // IMPORTANT: wrapper doesn't block header clicks
   return (
-    // ✅ IMPORTANT: this wrapper does NOT catch taps -> header buttons work
     <div
       className="lv-book-shell"
       style={{
         height: '100svh',
+        overflow: 'hidden',
+        pointerEvents: 'none', // не перекрываем шапку
+        paddingTop: HEADER_SAFE_TOP, // книга чуть выше/под шапкой
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'flex-start', // ✅ move book higher (not centered)
-        paddingTop: 10, // ✅ small offset from top
-        overflow: 'hidden',
-        pointerEvents: 'none', // ✅ do not block header buttons
+        justifyContent: 'flex-start',
       }}
     >
-      {/* ✅ Only the book area is clickable */}
       <div
         className="lv-book-flip-wrapper"
         style={{
+          pointerEvents: 'auto',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           flex: '0 0 auto',
-          pointerEvents: 'auto', // ✅ clickable
         }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchEnd}
       >
         <HTMLFlipBook
           width={480}
@@ -194,18 +143,16 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         </HTMLFlipBook>
       </div>
 
-      {/* ✅ Bottom controls clickable */}
       <div
         className="lv-book-controls"
         style={{
-          marginTop: 10,
+          pointerEvents: 'auto',
+          marginTop: 8,
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           gap: 18,
           paddingBottom: 10,
-          flex: '0 0 auto',
-          pointerEvents: 'auto', // ✅ clickable
         }}
       >
         <button
