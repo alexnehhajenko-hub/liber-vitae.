@@ -8,7 +8,7 @@ type BookLayoutProps = {
 };
 
 type FlipEvent = {
-  data: number;
+  data: number; // индекс текущей страницы
 };
 
 const HTMLFlipBook = dynamic(
@@ -17,38 +17,52 @@ const HTMLFlipBook = dynamic(
 ) as any;
 
 const STORAGE_KEY = 'lv_last_page_book';
-const HEADER_SAFE_TOP = 56; // высота шапки, чтобы книгу поднять и не перекрывать
+const HEADER_SAFE_TOP = 56; // чтобы книга не залезала под шапку
 
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const bookRef = React.useRef<any>(null);
-  const flipApiRef = React.useRef<any>(null);
-
   const [current, setCurrent] = React.useState(0);
+  const [ready, setReady] = React.useState(false);
+
   const total = pages.length;
 
-  const safeFlipTo = React.useCallback((index: number) => {
-    const api = flipApiRef.current;
-    if (!api) return;
+  const getFlip = React.useCallback(() => {
     try {
-      api.flip(index);
-    } catch {}
+      const inst = bookRef.current;
+      if (!inst) return null;
+      if (typeof inst.pageFlip === 'function') return inst.pageFlip();
+      return null;
+    } catch {
+      return null;
+    }
   }, []);
 
+  const flipTo = React.useCallback((index: number) => {
+    const api = getFlip();
+    if (!api) return false;
+    try {
+      api.flip(index);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [getFlip]);
+
   const handlePrev = React.useCallback(() => {
-    const api = flipApiRef.current;
+    const api = getFlip();
     if (!api) return;
     try {
       api.flipPrev();
     } catch {}
-  }, []);
+  }, [getFlip]);
 
   const handleNext = React.useCallback(() => {
-    const api = flipApiRef.current;
+    const api = getFlip();
     if (!api) return;
     try {
       api.flipNext();
     } catch {}
-  }, []);
+  }, [getFlip]);
 
   const handleFlip = React.useCallback((e: FlipEvent) => {
     const idx = e?.data ?? 0;
@@ -58,51 +72,60 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     } catch {}
   }, []);
 
-  const handleInit = React.useCallback((e: any) => {
-    try {
-      flipApiRef.current = e?.pageFlip?.() ?? null;
-    } catch {
-      flipApiRef.current = null;
-    }
-
-    try {
-      if (!flipApiRef.current && bookRef.current?.pageFlip) {
-        flipApiRef.current = bookRef.current.pageFlip();
-      }
-    } catch {}
-
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      const idx = raw ? Number(raw) : 0;
-      const safe = Number.isFinite(idx) ? Math.max(0, Math.min(idx, total - 1)) : 0;
-      requestAnimationFrame(() => safeFlipTo(safe));
-      setCurrent(safe);
-    } catch {}
-  }, [safeFlipTo, total]);
-
-  // reset event (если где-то используете)
+  // Надёжная инициализация: ждём, пока ref реально появится
   React.useEffect(() => {
-    const onReset = () => {
-      try {
-        window.localStorage.setItem(STORAGE_KEY, '0');
-      } catch {}
-      setCurrent(0);
-      requestAnimationFrame(() => safeFlipTo(0));
+    let cancelled = false;
+    let tries = 0;
+
+    const init = () => {
+      if (cancelled) return;
+
+      const api = getFlip();
+      if (api) {
+        setReady(true);
+
+        // восстановить страницу
+        let saved = 0;
+        try {
+          const raw = window.localStorage.getItem(STORAGE_KEY);
+          const n = raw ? Number(raw) : 0;
+          saved = Number.isFinite(n) ? n : 0;
+        } catch {}
+
+        const safe = Math.max(0, Math.min(saved, total - 1));
+        setCurrent(safe);
+
+        // flip после готовности (2 кадра — стабильно на мобиле)
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            flipTo(safe);
+          });
+        });
+
+        return;
+      }
+
+      tries += 1;
+      if (tries < 40) {
+        setTimeout(init, 50);
+      } else {
+        setReady(false);
+      }
     };
 
-    window.addEventListener('lv:resetBook', onReset as any);
-    return () => window.removeEventListener('lv:resetBook', onReset as any);
-  }, [safeFlipTo]);
+    init();
+    return () => {
+      cancelled = true;
+    };
+  }, [getFlip, flipTo, total]);
 
-  // IMPORTANT: wrapper doesn't block header clicks
   return (
     <div
       className="lv-book-shell"
       style={{
         height: '100svh',
         overflow: 'hidden',
-        pointerEvents: 'none', // не перекрываем шапку
-        paddingTop: HEADER_SAFE_TOP, // книга чуть выше/под шапкой
+        paddingTop: HEADER_SAFE_TOP,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
@@ -111,7 +134,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       <div
         className="lv-book-flip-wrapper"
         style={{
-          pointerEvents: 'auto',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
@@ -133,7 +155,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           className="lv-flip-book"
           ref={bookRef}
           onFlip={handleFlip}
-          onInit={handleInit}
         >
           {pages.map((page, index) => (
             <div key={index} className="lv-flip-page">
@@ -146,7 +167,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       <div
         className="lv-book-controls"
         style={{
-          pointerEvents: 'auto',
           marginTop: 8,
           display: 'flex',
           justifyContent: 'center',
@@ -159,7 +179,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           type="button"
           className="lv-book-nav-btn"
           onClick={handlePrev}
-          disabled={current <= 0}
+          disabled={!ready || current <= 0}
         >
           ← Назад
         </button>
@@ -172,7 +192,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           type="button"
           className="lv-book-nav-btn"
           onClick={handleNext}
-          disabled={current >= total - 1}
+          disabled={!ready || current >= total - 1}
         >
           Вперёд →
         </button>
