@@ -3,12 +3,22 @@ import React from 'react';
 type ManuscriptPageProps = {
   index: number;
   total: number;
+  onSave?: () => void;
+  onStartNew?: () => void;
 };
 
 export const ManuscriptPage: React.FC<ManuscriptPageProps> = ({
   index,
   total,
+  onSave,
+  onStartNew,
 }) => {
+  // Блокируем события, чтобы FlipBook не воспринимал тап как перелистывание
+  const stopFlip = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   return (
     <article className="lv-page">
       <header className="lv-page-header">
@@ -29,11 +39,39 @@ export const ManuscriptPage: React.FC<ManuscriptPageProps> = ({
         </p>
       </div>
 
-      <div className="lv-page-actions">
-        <button className="lv-page-btn lv-page-btn--primary" type="button">
+      <div
+        className="lv-page-actions"
+        // Перекрываем и pointer/touch/mouse, чтобы на iPhone тоже не “листал”
+        onPointerDown={stopFlip}
+        onTouchStart={stopFlip}
+        onMouseDown={stopFlip}
+        onClick={stopFlip}
+      >
+        <button
+          className="lv-page-btn lv-page-btn--primary"
+          type="button"
+          onPointerDown={stopFlip}
+          onTouchStart={stopFlip}
+          onMouseDown={stopFlip}
+          onClick={(e) => {
+            stopFlip(e);
+            onSave?.();
+          }}
+        >
           СОХРАНИТЬ В АРХИВ
         </button>
-        <button className="lv-page-btn lv-page-btn--secondary" type="button">
+
+        <button
+          className="lv-page-btn lv-page-btn--secondary"
+          type="button"
+          onPointerDown={stopFlip}
+          onTouchStart={stopFlip}
+          onMouseDown={stopFlip}
+          onClick={(e) => {
+            stopFlip(e);
+            onStartNew?.();
+          }}
+        >
           НАЧАТЬ НОВЫЙ ТОМ
         </button>
       </div>
@@ -44,6 +82,5 @@ export const ManuscriptPage: React.FC<ManuscriptPageProps> = ({
         </span>
       </footer>
     </article>
-
   );
 };
