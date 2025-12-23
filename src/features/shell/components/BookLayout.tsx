@@ -17,13 +17,17 @@ const HTMLFlipBook = dynamic(
 ) as any;
 
 const STORAGE_KEY = 'lv_last_page_book';
-const HEADER_SAFE_TOP = 56; // чтобы книга не залезала под шапку
 
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const bookRef = React.useRef<any>(null);
+
   const [current, setCurrent] = React.useState(0);
   const [ready, setReady] = React.useState(false);
 
+  // Пересоздание движка (лечит “прыжок назад” после reset)
+  const [flipKey, setFlipKey] = React.useState(1);
+
+  const pendingResetRef = React.useRef(false);
   const total = pages.length;
 
   const getFlip = React.useCallback(() => {
@@ -36,17 +40,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       return null;
     }
   }, []);
-
-  const flipTo = React.useCallback((index: number) => {
-    const api = getFlip();
-    if (!api) return false;
-    try {
-      api.flip(index);
-      return true;
-    } catch {
-      return false;
-    }
-  }, [getFlip]);
 
   const handlePrev = React.useCallback(() => {
     const api = getFlip();
@@ -72,7 +65,26 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     } catch {}
   }, []);
 
-  // Надёжная инициализация: ждём, пока ref реально появится
+  const hardResetToBeginning = React.useCallback(() => {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, '0');
+    } catch {}
+
+    setCurrent(0);
+    setReady(false);
+
+    pendingResetRef.current = true;
+    setFlipKey((k) => k + 1);
+  }, []);
+
+  // Событие из шапки
+  React.useEffect(() => {
+    const onReset = () => hardResetToBeginning();
+    window.addEventListener('lv:resetBook', onReset as any);
+    return () => window.removeEventListener('lv:resetBook', onReset as any);
+  }, [hardResetToBeginning]);
+
+  // Инициализация / ре-инициализация при flipKey
   React.useEffect(() => {
     let cancelled = false;
     let tries = 0;
@@ -84,7 +96,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       if (api) {
         setReady(true);
 
-        // восстановить страницу
         let saved = 0;
         try {
           const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -92,13 +103,24 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           saved = Number.isFinite(n) ? n : 0;
         } catch {}
 
+        if (pendingResetRef.current) {
+          pendingResetRef.current = false;
+          saved = 0;
+          try {
+            window.localStorage.setItem(STORAGE_KEY, '0');
+          } catch {}
+        }
+
         const safe = Math.max(0, Math.min(saved, total - 1));
         setCurrent(safe);
 
-        // flip после готовности (2 кадра — стабильно на мобиле)
+        // стабильный переход после маунта
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            flipTo(safe);
+            try {
+              if (typeof api.turnToPage === 'function') api.turnToPage(safe);
+              else api.flip(safe);
+            } catch {}
           });
         });
 
@@ -106,7 +128,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       }
 
       tries += 1;
-      if (tries < 40) {
+      if (tries < 120) {
         setTimeout(init, 50);
       } else {
         setReady(false);
@@ -117,30 +139,49 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     return () => {
       cancelled = true;
     };
-  }, [getFlip, flipTo, total]);
+  }, [flipKey, getFlip, total]);
 
   return (
     <div
       className="lv-book-shell"
       style={{
-        height: '100svh',
+        // ВАЖНО: НЕ 100svh, а 100% — потому что высоту уже задаёт SiteLayout/main
+        height: '100%',
+        minHeight: 0,
         overflow: 'hidden',
-        paddingTop: HEADER_SAFE_TOP,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'flex-start',
       }}
     >
+      {/* Зона книги занимает всё доступное место */}
       <div
         className="lv-book-flip-wrapper"
         style={{
+          flex: '1 1 auto',
+          minHeight: 0,
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          flex: '0 0 auto',
+          paddingTop: 8,
+          paddingBottom: 8,
         }}
       >
+        {!ready && (
+          <div
+            style={{
+              position: 'absolute',
+              top: '45%',
+              transform: 'translateY(-50%)',
+              opacity: 0.65,
+              fontSize: 14,
+            }}
+          >
+            Загрузка книги…
+          </div>
+        )}
+
         <HTMLFlipBook
+          key={flipKey}
           width={480}
           height={640}
           size="stretch"
@@ -164,15 +205,18 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         </HTMLFlipBook>
       </div>
 
+      {/* Кнопки — всегда внизу */}
       <div
         className="lv-book-controls"
         style={{
-          marginTop: 8,
+          marginTop: 'auto',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           gap: 18,
-          paddingBottom: 10,
+          padding: '10px 0 12px',
+          pointerEvents: 'auto',
+          zIndex: 20,
         }}
       >
         <button
