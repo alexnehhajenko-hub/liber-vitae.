@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { SiteHeader } from './SiteHeader';
 
@@ -8,33 +6,19 @@ type SiteLayoutProps = {
 };
 
 export const SiteLayout: React.FC<SiteLayoutProps> = ({ children }) => {
-  // высота шапки (под неё делаем отступ, чтобы книга не уезжала/не пропадала)
-  const HEADER_H = 56;
-
   return (
-    <div className="lv-app-root" style={{ height: '100svh', overflow: 'hidden' }}>
-      <header
-        className="lv-site-header"
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: HEADER_H,
-          zIndex: 99999,
-          pointerEvents: 'auto',
-        }}
-      >
-        <div
-          className="lv-site-header-inner"
-          style={{
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '10px 12px',
-          }}
-        >
+    <div
+      className="lv-app-root"
+      style={{
+        minHeight: '100svh',
+        height: '100svh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      <header className="lv-site-header" style={{ flex: '0 0 auto' }}>
+        <div className="lv-site-header-inner">
           <SiteHeader />
         </div>
       </header>
@@ -42,12 +26,23 @@ export const SiteLayout: React.FC<SiteLayoutProps> = ({ children }) => {
       <main
         className="lv-site-main"
         style={{
-          height: '100%',
-          paddingTop: HEADER_H,
+          flex: '1 1 auto',
+          minHeight: 0,
           overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        <div className="lv-site-main-inner" style={{ height: '100%' }}>
+        <div
+          className="lv-site-main-inner"
+          style={{
+            flex: '1 1 auto',
+            minHeight: 0,
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           {children}
         </div>
       </main>
