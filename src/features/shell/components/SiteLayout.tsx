@@ -7,15 +7,20 @@ type SiteLayoutProps = {
 
 export const SiteLayout: React.FC<SiteLayoutProps> = ({ children }) => {
   return (
-    <div className="lv-app-root">
+    <div
+      className="lv-app-root"
+      style={{
+        height: '100svh',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
       <header
         className="lv-site-header"
         style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 2000,
+          flex: '0 0 auto',
+          zIndex: 50,
         }}
       >
         <div className="lv-site-header-inner">
@@ -26,10 +31,23 @@ export const SiteLayout: React.FC<SiteLayoutProps> = ({ children }) => {
       <main
         className="lv-site-main"
         style={{
-          paddingTop: 72, // высота шапки
+          flex: '1 1 auto',
+          minHeight: 0,
+          overflow: 'hidden',
+          display: 'flex',
         }}
       >
-        <div className="lv-site-main-inner">{children}</div>
+        <div
+          className="lv-site-main-inner"
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflow: 'hidden',
+            display: 'flex',
+          }}
+        >
+          {children}
+        </div>
       </main>
     </div>
   );
