@@ -8,7 +8,7 @@ type BookLayoutProps = {
 };
 
 type FlipEvent = {
-  data: number; // индекс текущей страницы
+  data: number;
 };
 
 const HTMLFlipBook = dynamic(
@@ -24,10 +24,10 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const [current, setCurrent] = React.useState(0);
   const [ready, setReady] = React.useState(false);
 
-  // Пересоздание движка (лечит “прыжок назад” после reset)
+  // Remount FlipBook при reset — это лечит “прыжок назад на старую страницу”
   const [flipKey, setFlipKey] = React.useState(1);
-
   const pendingResetRef = React.useRef(false);
+
   const total = pages.length;
 
   const getFlip = React.useCallback(() => {
@@ -77,14 +77,14 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     setFlipKey((k) => k + 1);
   }, []);
 
-  // Событие из шапки
+  // Слушаем кнопку “Начать сначала” (шапка шлёт событие)
   React.useEffect(() => {
     const onReset = () => hardResetToBeginning();
     window.addEventListener('lv:resetBook', onReset as any);
     return () => window.removeEventListener('lv:resetBook', onReset as any);
   }, [hardResetToBeginning]);
 
-  // Инициализация / ре-инициализация при flipKey
+  // Инициализация/реинициализация FlipBook после remount
   React.useEffect(() => {
     let cancelled = false;
     let tries = 0;
@@ -114,7 +114,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         const safe = Math.max(0, Math.min(saved, total - 1));
         setCurrent(safe);
 
-        // стабильный переход после маунта
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             try {
@@ -128,11 +127,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       }
 
       tries += 1;
-      if (tries < 120) {
-        setTimeout(init, 50);
-      } else {
-        setReady(false);
-      }
+      if (tries < 120) setTimeout(init, 50);
+      else setReady(false);
     };
 
     init();
@@ -145,15 +141,13 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     <div
       className="lv-book-shell"
       style={{
-        // ВАЖНО: НЕ 100svh, а 100% — потому что высоту уже задаёт SiteLayout/main
-        height: '100%',
+        flex: '1 1 auto',
         minHeight: 0,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      {/* Зона книги занимает всё доступное место */}
       <div
         className="lv-book-flip-wrapper"
         style={{
@@ -162,20 +156,12 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          paddingTop: 8,
-          paddingBottom: 8,
+          position: 'relative',
+          padding: '10px 0',
         }}
       >
         {!ready && (
-          <div
-            style={{
-              position: 'absolute',
-              top: '45%',
-              transform: 'translateY(-50%)',
-              opacity: 0.65,
-              fontSize: 14,
-            }}
-          >
+          <div style={{ opacity: 0.65, fontSize: 14 }}>
             Загрузка книги…
           </div>
         )}
@@ -205,18 +191,17 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         </HTMLFlipBook>
       </div>
 
-      {/* Кнопки — всегда внизу */}
       <div
         className="lv-book-controls"
         style={{
-          marginTop: 'auto',
+          flex: '0 0 auto',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           gap: 18,
           padding: '10px 0 12px',
           pointerEvents: 'auto',
-          zIndex: 20,
+          zIndex: 50,
         }}
       >
         <button
@@ -233,7 +218,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         </span>
 
         <button
-
           type="button"
           className="lv-book-nav-btn"
           onClick={handleNext}
