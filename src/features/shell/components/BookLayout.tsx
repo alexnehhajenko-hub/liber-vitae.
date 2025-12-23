@@ -18,8 +18,9 @@ const HTMLFlipBook = dynamic(
 
 const STORAGE_KEY = 'lv_last_page_book';
 
-// меньше “служебных” зон = больше места книге
+// Высота фиксированной шапки (SiteLayout) — подгони при желании на 64/72
 const HEADER_H = 72;
+// Высота нижней панели управления
 const CONTROLS_H = 56;
 
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
@@ -35,11 +36,9 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--lv-vh', `${vh}px`);
     };
-
     setVh();
     window.addEventListener('resize', setVh);
     window.addEventListener('orientationchange', setVh);
-
     return () => {
       window.removeEventListener('resize', setVh);
       window.removeEventListener('orientationchange', setVh);
@@ -134,15 +133,16 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         position: 'fixed',
         left: 0,
         right: 0,
-        top: 0,
-        height: screenH,
+        // КЛЮЧЕВОЕ: начинаем прямо под шапкой
+        top: HEADER_H,
+        // и фиксируем низ, чтобы кнопки всегда были видны
+        bottom: 0,
+        height: `calc(${screenH} - ${HEADER_H}px)`,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      <div style={{ flex: `0 0 ${HEADER_H}px` }} />
-
       <div
         className="lv-book-flip-wrapper"
         style={{
@@ -151,7 +151,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: '2px 0',
+          // чуть больше места книге
+          padding: '6px 0',
           position: 'relative',
         }}
       >
@@ -162,13 +163,14 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         )}
 
         <HTMLFlipBook
-          width={540}
-          height={720}
+          // БОЛЬШЕ базовый размер = больше книга на телефоне
+          width={620}
+          height={840}
           size="stretch"
-          minWidth={340}
-          maxWidth={1200}
-          minHeight={520}
-          maxHeight={1400}
+          minWidth={360}
+          maxWidth={1400}
+          minHeight={560}
+          maxHeight={1800}
           maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true}
