@@ -18,32 +18,12 @@ const HTMLFlipBook = dynamic(
 
 const STORAGE_KEY = 'lv_last_page_book';
 
-// Высота фиксированной шапки (SiteLayout) — подгони при желании на 64/72
-const HEADER_H = 72;
-// Высота нижней панели управления
-const CONTROLS_H = 56;
-
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const bookRef = React.useRef<any>(null);
-
   const [current, setCurrent] = React.useState(0);
   const [ready, setReady] = React.useState(false);
 
   const total = pages.length;
-
-  React.useEffect(() => {
-    const setVh = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--lv-vh', `${vh}px`);
-    };
-    setVh();
-    window.addEventListener('resize', setVh);
-    window.addEventListener('orientationchange', setVh);
-    return () => {
-      window.removeEventListener('resize', setVh);
-      window.removeEventListener('orientationchange', setVh);
-    };
-  }, []);
 
   const getFlip = React.useCallback(() => {
     try {
@@ -55,6 +35,20 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       return null;
     }
   }, []);
+
+  const flipTo = React.useCallback(
+    (index: number) => {
+      const api = getFlip();
+      if (!api) return false;
+      try {
+        api.flip(index);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [getFlip]
+  );
 
   const handlePrev = React.useCallback(() => {
     const api = getFlip();
@@ -80,6 +74,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     } catch {}
   }, []);
 
+  // Инициализация + восстановление страницы
   React.useEffect(() => {
     let cancelled = false;
     let tries = 0;
@@ -103,10 +98,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            try {
-              if (typeof api.turnToPage === 'function') api.turnToPage(safe);
-              else api.flip(safe);
-            } catch {}
+            flipTo(safe);
           });
         });
 
@@ -114,7 +106,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       }
 
       tries += 1;
-      if (tries < 120) setTimeout(init, 50);
+      if (tries < 60) setTimeout(init, 50);
       else setReady(false);
     };
 
@@ -122,22 +114,14 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     return () => {
       cancelled = true;
     };
-  }, [getFlip, total]);
-
-  const screenH = 'calc(var(--lv-vh, 1vh) * 100)';
+  }, [getFlip, flipTo, total]);
 
   return (
     <div
       className="lv-book-shell"
       style={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        // КЛЮЧЕВОЕ: начинаем прямо под шапкой
-        top: HEADER_H,
-        // и фиксируем низ, чтобы кнопки всегда были видны
-        bottom: 0,
-        height: `calc(${screenH} - ${HEADER_H}px)`,
+        height: '100%',
+        minHeight: 0,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -151,30 +135,21 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          // чуть больше места книге
-          padding: '6px 0',
-          position: 'relative',
+          padding: 10,
         }}
       >
-        {!ready && (
-          <div style={{ position: 'absolute', left: 16, bottom: 16, opacity: 0.65 }}>
-            Загрузка книги…
-          </div>
-        )}
-
         <HTMLFlipBook
-          // БОЛЬШЕ базовый размер = больше книга на телефоне
-          width={620}
-          height={840}
+          width={520}
+          height={720}
           size="stretch"
-          minWidth={360}
-          maxWidth={1400}
-          minHeight={560}
-          maxHeight={1800}
+          minWidth={320}
+          maxWidth={1200}
+          minHeight={480}
+          maxHeight={1400}
           maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true}
-          mobileScrollSupport={true}
+          mobileScrollSupport={false}
           className="lv-flip-book"
           ref={bookRef}
           onFlip={handleFlip}
@@ -190,13 +165,12 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       <div
         className="lv-book-controls"
         style={{
-          flex: `0 0 ${CONTROLS_H}px`,
+          flex: '0 0 auto',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           gap: 18,
-          paddingBottom: 'max(10px, env(safe-area-inset-bottom))',
-          zIndex: 1000,
+          padding: '10px 12px calc(10px + env(safe-area-inset-bottom))',
         }}
       >
         <button
