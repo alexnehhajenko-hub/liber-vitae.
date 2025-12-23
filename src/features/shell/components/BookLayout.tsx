@@ -233,6 +233,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         </span>
 
         <button
+
           type="button"
           className="lv-book-nav-btn"
           onClick={handleNext}
