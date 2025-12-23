@@ -17,8 +17,6 @@ const HTMLFlipBook = dynamic(
 ) as any;
 
 const STORAGE_KEY = 'lv_last_page_book';
-// ВАЖНО: если SiteLayout уже делает paddingTop под шапку — тут ставим 0
-const HEADER_SAFE_TOP = 0;
 
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const bookRef = React.useRef<any>(null);
@@ -26,10 +24,13 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const [current, setCurrent] = React.useState(0);
   const [ready, setReady] = React.useState(false);
 
-  const total = pages.length;
+  // ключ для принудительного пересоздания flipbook (лечит “прыжок назад”)
+  const [flipKey, setFlipKey] = React.useState(1);
 
-  // если пришёл reset до готовности flipbook — запомним и выполним позже
+  // если reset пришёл до готовности — применим сразу после init
   const pendingResetRef = React.useRef(false);
+
+  const total = pages.length;
 
   const getFlip = React.useCallback(() => {
     try {
@@ -41,20 +42,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       return null;
     }
   }, []);
-
-  const flipTo = React.useCallback(
-    (index: number) => {
-      const api = getFlip();
-      if (!api) return false;
-      try {
-        api.flip(index);
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    [getFlip]
-  );
 
   const handlePrev = React.useCallback(() => {
     const api = getFlip();
@@ -80,39 +67,29 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     } catch {}
   }, []);
 
-  const resetToBeginning = React.useCallback(() => {
-    // сохраняем 0
+  const hardResetToBeginning = React.useCallback(() => {
+    // 1) сохраняем “0”
     try {
       window.localStorage.setItem(STORAGE_KEY, '0');
     } catch {}
 
+    // 2) сбрасываем UI
     setCurrent(0);
+    setReady(false);
 
-    // если flipbook не готов — просто пометим, и сделаем когда будет ready
-    const api = getFlip();
-    if (!api) {
-      pendingResetRef.current = true;
-      return;
-    }
+    // 3) принудительно пересоздаём flipbook (самый надёжный reset)
+    pendingResetRef.current = true;
+    setFlipKey((k) => k + 1);
+  }, []);
 
-    // flip стабильно делаем на следующий кадр
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        try {
-          api.flip(0);
-        } catch {}
-      });
-    });
-  }, [getFlip]);
-
-  // Слушаем reset-событие (его шлёт кнопка "Начать сначала")
+  // слушаем reset из шапки
   React.useEffect(() => {
-    const onReset = () => resetToBeginning();
+    const onReset = () => hardResetToBeginning();
     window.addEventListener('lv:resetBook', onReset as any);
     return () => window.removeEventListener('lv:resetBook', onReset as any);
-  }, [resetToBeginning]);
+  }, [hardResetToBeginning]);
 
-  // Надёжная инициализация: ждём, пока ref реально появится
+  // инициализация flipbook (каждый раз при flipKey)
   React.useEffect(() => {
     let cancelled = false;
     let tries = 0;
@@ -132,25 +109,26 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           saved = Number.isFinite(n) ? n : 0;
         } catch {}
 
+        // если был reset — гарантированно стартуем с 0
+        if (pendingResetRef.current) {
+          pendingResetRef.current = false;
+          saved = 0;
+          try {
+            window.localStorage.setItem(STORAGE_KEY, '0');
+          } catch {}
+        }
+
         const safe = Math.max(0, Math.min(saved, total - 1));
         setCurrent(safe);
 
-        // flip после готовности (2 кадра — стабильно на мобиле)
+        // стабильно перелистываем после готовности
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            flipTo(safe);
-
-            // если за время инициализации пришёл reset — применим его сразу
-            if (pendingResetRef.current) {
-              pendingResetRef.current = false;
-              try {
-                api.flip(0);
-              } catch {}
-              setCurrent(0);
-              try {
-                window.localStorage.setItem(STORAGE_KEY, '0');
-              } catch {}
-            }
+            try {
+              // у некоторых версий есть turnToPage; если нет — используем flip
+              if (typeof api.turnToPage === 'function') api.turnToPage(safe);
+              else api.flip(safe);
+            } catch {}
           });
         });
 
@@ -158,7 +136,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       }
 
       tries += 1;
-      if (tries < 60) {
+      if (tries < 80) {
         setTimeout(init, 50);
       } else {
         setReady(false);
@@ -169,7 +147,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     return () => {
       cancelled = true;
     };
-  }, [getFlip, flipTo, total]);
+  }, [flipKey, getFlip, total]);
 
   return (
     <div
@@ -177,7 +155,6 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       style={{
         height: '100svh',
         overflow: 'hidden',
-        paddingTop: HEADER_SAFE_TOP,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
@@ -193,6 +170,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
         }}
       >
         <HTMLFlipBook
+          key={flipKey} // <-- важно: remount при reset
           width={480}
           height={640}
           size="stretch"
@@ -225,6 +203,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           alignItems: 'center',
           gap: 18,
           paddingBottom: 10,
+          pointerEvents: 'auto',
+          zIndex: 10,
         }}
       >
         <button
