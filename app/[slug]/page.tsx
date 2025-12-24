@@ -640,7 +640,8 @@ export default function DynamicPage({ params }: PageProps) {
                     background: 'linear-gradient(120deg, #b57b2f, #e2a858)',
                     color: '#fff',
                     fontWeight: 600,
-                  }}
+        
+          }}
                 >
                   {lang === 'ru' ? 'Сохранить' : 'Save'}
                 </button>
