@@ -7,9 +7,7 @@ type BookLayoutProps = {
   pages: React.ReactNode[];
 };
 
-type FlipEvent = {
-  data: number;
-};
+type FlipEvent = any;
 
 const HTMLFlipBook = dynamic(
   () => import('react-pageflip').then((mod: any) => mod.default),
@@ -20,59 +18,119 @@ const STORAGE_KEY = 'lv_last_page_book';
 
 export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
   const bookRef = React.useRef<any>(null);
+  const apiRef = React.useRef<any>(null);
+
   const [current, setCurrent] = React.useState(0);
   const [ready, setReady] = React.useState(false);
 
   const total = pages.length;
 
-  const getFlip = React.useCallback(() => {
+  const resolveApi = React.useCallback(() => {
+    const inst = bookRef.current;
+    if (!inst) return null;
+
+    // Вариант 1: стандартный (как в доках)
     try {
-      const inst = bookRef.current;
-      if (!inst) return null;
-      if (typeof inst.pageFlip === 'function') return inst.pageFlip();
-      return null;
-    } catch {
-      return null;
-    }
+      if (typeof inst.pageFlip === 'function') {
+        const api = inst.pageFlip();
+        if (api) return api;
+      }
+    } catch {}
+
+    // Вариант 2: иногда pageFlip лежит как объект
+    try {
+      if (inst.pageFlip && typeof inst.pageFlip === 'object') return inst.pageFlip;
+    } catch {}
+
+    // Вариант 3: иногда методы доступны прямо на инстансе
+    try {
+      if (typeof inst.flipNext === 'function' || typeof inst.flipPrev === 'function') return inst;
+    } catch {}
+
+    return null;
   }, []);
 
-  const flipTo = React.useCallback(
-    (index: number) => {
-      const api = getFlip();
-      if (!api) return false;
-      try {
-        api.flip(index);
-        return true;
-      } catch {
-        return false;
+  const syncApiRef = React.useCallback(() => {
+    const api = resolveApi();
+    if (api) {
+      apiRef.current = api;
+      return true;
+    }
+    return false;
+  }, [resolveApi]);
+
+  const getCurrentIndex = React.useCallback((): number => {
+    const api = apiRef.current;
+    if (!api) return current;
+
+    try {
+      if (typeof api.getCurrentPageIndex === 'function') {
+        const n = api.getCurrentPageIndex();
+        if (Number.isFinite(n)) return n;
       }
-    },
-    [getFlip]
-  );
+    } catch {}
+
+    return current;
+  }, [current]);
+
+  const goTo = React.useCallback((index: number) => {
+    const api = apiRef.current;
+    if (!api) return;
+
+    const safe = Math.max(0, Math.min(index, total - 1));
+    try {
+      if (typeof api.flip === 'function') api.flip(safe);
+    } catch {}
+
+    // на всякий случай синхронизируем current после анимации
+    setTimeout(() => {
+      setCurrent(getCurrentIndex());
+    }, 60);
+  }, [getCurrentIndex, total]);
 
   const handlePrev = React.useCallback(() => {
-    const api = getFlip();
+    // если api не готово — попробуем подцепить ещё раз
+    if (!apiRef.current) syncApiRef();
+
+    const api = apiRef.current;
     if (!api) return;
+
     try {
-      api.flipPrev();
+      if (typeof api.flipPrev === 'function') api.flipPrev();
+      else if (typeof api.turnToPrevPage === 'function') api.turnToPrevPage();
     } catch {}
-  }, [getFlip]);
+
+    setTimeout(() => setCurrent(getCurrentIndex()), 60);
+  }, [getCurrentIndex, syncApiRef]);
 
   const handleNext = React.useCallback(() => {
-    const api = getFlip();
+    if (!apiRef.current) syncApiRef();
+
+    const api = apiRef.current;
     if (!api) return;
+
     try {
-      api.flipNext();
+      if (typeof api.flipNext === 'function') api.flipNext();
+      else if (typeof api.turnToNextPage === 'function') api.turnToNextPage();
     } catch {}
-  }, [getFlip]);
+
+    setTimeout(() => setCurrent(getCurrentIndex()), 60);
+  }, [getCurrentIndex, syncApiRef]);
 
   const handleFlip = React.useCallback((e: FlipEvent) => {
-    const idx = e?.data ?? 0;
-    setCurrent(idx);
+    // разные версии отдают разные поля
+    const idx =
+      (typeof e?.data === 'number' ? e.data : null) ??
+      (typeof e?.page === 'number' ? e.page : null) ??
+      getCurrentIndex();
+
+    const safe = Math.max(0, Math.min(idx, total - 1));
+    setCurrent(safe);
+
     try {
-      window.localStorage.setItem(STORAGE_KEY, String(idx));
+      window.localStorage.setItem(STORAGE_KEY, String(safe));
     } catch {}
-  }, []);
+  }, [getCurrentIndex, total]);
 
   // Инициализация + восстановление страницы
   React.useEffect(() => {
@@ -82,8 +140,8 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     const init = () => {
       if (cancelled) return;
 
-      const api = getFlip();
-      if (api) {
+      const ok = syncApiRef();
+      if (ok) {
         setReady(true);
 
         let saved = 0;
@@ -98,7 +156,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
 
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
-            flipTo(safe);
+            goTo(safe);
           });
         });
 
@@ -106,7 +164,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
       }
 
       tries += 1;
-      if (tries < 60) setTimeout(init, 50);
+      if (tries < 80) setTimeout(init, 50);
       else setReady(false);
     };
 
@@ -114,7 +172,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
     return () => {
       cancelled = true;
     };
-  }, [getFlip, flipTo, total]);
+  }, [goTo, syncApiRef, total]);
 
   return (
     <div
@@ -136,20 +194,23 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           justifyContent: 'center',
           alignItems: 'center',
           padding: 10,
+          // важно: не даём wrapper перекрывать нижние кнопки кликами
+          position: 'relative',
+          zIndex: 10,
         }}
       >
         <HTMLFlipBook
-          width={520}
-          height={720}
+          width={560}
+          height={760}
           size="stretch"
           minWidth={320}
-          maxWidth={1200}
+          maxWidth={1400}
           minHeight={480}
-          maxHeight={1400}
+          maxHeight={1600}
           maxShadowOpacity={0.7}
           showCover={false}
           usePortrait={true}
-          mobileScrollSupport={false}
+          mobileScrollSupport={true}
           className="lv-flip-book"
           ref={bookRef}
           onFlip={handleFlip}
@@ -171,6 +232,11 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           alignItems: 'center',
           gap: 18,
           padding: '10px 12px calc(10px + env(safe-area-inset-bottom))',
+
+          // КЛЮЧЕВОЕ: кнопки всегда поверх всего и кликабельны на iOS
+          position: 'relative',
+          zIndex: 9999,
+          pointerEvents: 'auto',
         }}
       >
         <button
@@ -178,6 +244,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           className="lv-book-nav-btn"
           onClick={handlePrev}
           disabled={!ready || current <= 0}
+          style={{ pointerEvents: 'auto' }}
         >
           ← Назад
         </button>
@@ -191,6 +258,7 @@ export const BookLayout: React.FC<BookLayoutProps> = ({ pages }) => {
           className="lv-book-nav-btn"
           onClick={handleNext}
           disabled={!ready || current >= total - 1}
+          style={{ pointerEvents: 'auto' }}
         >
           Вперёд →
         </button>
