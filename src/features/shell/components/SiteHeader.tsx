@@ -80,7 +80,8 @@ export const SiteHeader: React.FC = () => {
             >
               English
             </button>
-          </div>
+          
+</div>
         )}
 
         {/* закрытие меню тапом вне */}
