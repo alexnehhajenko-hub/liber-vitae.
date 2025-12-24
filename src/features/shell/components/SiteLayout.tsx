@@ -37,6 +37,7 @@ export const SiteLayout: React.FC<SiteLayoutProps> = ({ children }) => {
           display: 'flex',
         }}
       >
+
         <div
           className="lv-site-main-inner"
           style={{
