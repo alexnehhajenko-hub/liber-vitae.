@@ -249,27 +249,20 @@ export default function DynamicPage({ params }: PageProps) {
   const [recognition, setRecognition] = useState<any | null>(null);
   const [isListening, setIsListening] = useState(false);
 
-  const resetAll = () => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      window.localStorage.removeItem('lv_answers_ru');
-      window.localStorage.removeItem('lv_answers_en');
-      window.localStorage.setItem('lv_last_page_book', '0');
-    } catch {}
-
-    setAnswers({});
-    setActiveEditor(null);
-    setDraftText('');
-    setIsListening(false);
-
-    window.dispatchEvent(new CustomEvent('lv:resetBook'));
-  };
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const saved = window.localStorage.getItem('lv_lang');
     if (saved === 'ru' || saved === 'en') setLang(saved);
+  }, []);
+
+  // слушаем язык из шапки
+  useEffect(() => {
+    const onSetLang = (e: any) => {
+      const next = e?.detail;
+      if (next === 'ru' || next === 'en') setLang(next);
+    };
+    window.addEventListener('lv:setLang', onSetLang as any);
+    return () => window.removeEventListener('lv:setLang', onSetLang as any);
   }, []);
 
   useEffect(() => {
@@ -491,23 +484,6 @@ export default function DynamicPage({ params }: PageProps) {
                 {p}
               </p>
             ))}
-
-            <div style={{ marginTop: 14 }}>
-              <button
-                type="button"
-                onClick={resetAll}
-                style={{
-                  borderRadius: 999,
-                  padding: '8px 14px',
-                  border: 'none',
-                  background: 'linear-gradient(120deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))',
-                  color: '#fff',
-                  fontWeight: 600,
-                }}
-              >
-                {lang === 'ru' ? 'Пройти заново' : 'Start over'}
-              </button>
-            </div>
           </div>
         </div>
 
@@ -564,25 +540,6 @@ export default function DynamicPage({ params }: PageProps) {
                     {t}
                   </p>
                 ))}
-
-                {i === portrait.length - 1 && (
-                  <div style={{ marginTop: 14 }}>
-                    <button
-                      type="button"
-                      onClick={resetAll}
-                      style={{
-                        borderRadius: 999,
-                        padding: '8px 14px',
-                        border: 'none',
-                        background: 'linear-gradient(120deg, rgba(0,0,0,0.55), rgba(0,0,0,0.35))',
-                        color: '#fff',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {lang === 'ru' ? 'Пройти заново' : 'Start over'}
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
 
